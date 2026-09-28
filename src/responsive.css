@@ -1,0 +1,390 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE LAYER — desktop, laptop, tablet, phone
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Loaded after styles.css, so it wins on equal specificity without having to
+   inflate selectors to get there.
+
+   One scale, applied everywhere, replacing the ten ad-hoc widths styles.css had
+   grown (560, 620, 640, 700, 768, 820, 900, 1000, 1100, 1180). Those older
+   rules still work and are left alone; everything here is stated in terms of:
+
+       >= 1280   desktop   full sidebar, multi-column, expanded menus
+       1024      laptop    full sidebar, tighter gutters
+       768       tablet    icon rail, two columns at most
+       < 768     phone     off-canvas drawer, single column, stacked
+
+   Widths end in .98 where bands must not overlap: a viewport of exactly 768px
+   has to belong to one of them, and browsers report fractional widths on
+   scaled displays.
+
+   ── Why some of this uses !important ──
+
+   The pages carry roughly 1500 inline style={{...}} attributes, many of them
+   grid templates like `repeat(3, 1fr)`. An inline style outranks every rule in
+   a stylesheet, so a media query cannot reach one: on a phone those grids stay
+   three columns wide and the content is unreadable. Rewriting 1500 call sites
+   by hand is a far larger and riskier change than this file. The attribute
+   selectors below match the inline style TEXT and override it on small screens
+   only — narrow in scope, reversible, and honest about what it works around.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ═══ Nothing may push the page sideways ══════════════════════════════════
+   One over-wide child makes the whole document scroll horizontally, which on a
+   phone reads as the app being broken even when a single element is at fault.
+   Contained here once rather than hunted page by page. */
+
+/* The clip goes on <html>, not on <body>.
+
+   overflow-x on a box forces its other axis to compute to 'auto', so
+   `body { overflow-x: hidden }` quietly turns <body> into a scroll container.
+   Every position:sticky inside then sticks to <body>'s scrollport — which never
+   scrolls, because the viewport does — and the sidebar slid away up the page.
+   Overflow set on <html> propagates to the viewport and leaves <html> itself
+   visible, so the sideways clip is kept and sticky keeps working. */
+html { overflow-x: hidden; }
+html, body { max-width: 100%; }
+.main-col { min-width: 0; }
+
+/* The sidebar scrolls its menu (overflow-y: auto), and that quietly makes it
+   a sideways scroller too. A trackpad swipe or a shift-wheel over the menu
+   then slid the whole rail left until only the chevrons showed, with no bar
+   to slide it back. The rail never needs to scroll sideways; the collapsed
+   rail clips on that axis already for its tooltip. */
+.sidebar:not(.sidebar-collapsed) { overflow-x: hidden; }
+img, video, canvas { max-width: 100%; }
+
+/* Long unbroken strings — invoice numbers, emails, URLs — are the other
+   reliable way to force a page wider than the screen. */
+.card, .table-wrap, td, th { overflow-wrap: anywhere; }
+
+
+/* ═══ The navigation drawer (phones) ══════════════════════════════════════ */
+
+.nav-toggle {
+  display: none;                     /* phones only — enabled in the band below */
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-right: 4px;
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.nav-toggle:active { background: var(--line); }
+
+.nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease;
+}
+.nav-backdrop.is-open { opacity: 1; pointer-events: auto; }
+
+@media (max-width: 767.98px) {
+  .nav-toggle { display: flex; }
+
+  /* Off-canvas. transform rather than display, so it slides instead of
+     appearing, and so it stays in the accessibility tree while animating. */
+  .sidebar.sidebar-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 100;
+    width: min(84vw, 300px);
+    transform: translateX(-100%);
+    transition: transform .24s cubic-bezier(.22, .61, .36, 1);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+  }
+  .sidebar.sidebar-drawer.is-open { transform: translateX(0); }
+
+  /* A drawer is a panel, not a rail: labels, groups and footer all return. */
+  .sidebar.sidebar-drawer .nav-item {
+    justify-content: flex-start;
+    padding: 12px 14px;
+  }
+
+  /* 44px is the smallest target a finger hits reliably. Menu rows were 34px —
+     comfortable with a mouse, frustrating without one. */
+  .sidebar.sidebar-drawer .nav-item,
+  .sidebar.sidebar-drawer .sidebar-group-head { min-height: 44px; }
+}
+
+
+/* ═══ Topbar ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1023.98px) {
+  .topbar { gap: 8px; padding-left: 12px; padding-right: 12px; }
+  .topbar-right { gap: 8px; }
+}
+
+@media (max-width: 767.98px) {
+  /* No overflow:hidden here. It was added to stop the title spilling out of
+     the bar, but .topbar-heading below now does that itself — and clipping the
+     bar also clipped the account and notification dropdowns, which hang below
+     it. They were invisible: present in the DOM, at full opacity, cut off by
+     an ancestor. (The old bottom sheet escaped this only because a fixed
+     element ignores an ancestor's overflow.) */
+  .topbar { flex-wrap: nowrap; min-height: 56px; gap: 6px; }
+  /* The variable follows the bar, or a phone's sticky panels would start 8px
+     too low and the anchor padding would be 8px too much. */
+  :root { --topbar-h: 56px; }
+  .topbar .title { font-size: 16px; }
+
+  /* The heading must be the part that yields. A flex item will not shrink below
+     its content unless told to, so without min-width:0 the title pushes the
+     controls off the right instead of truncating itself. */
+  .topbar-heading { min-width: 0; flex: 1 1 auto; overflow: hidden; }
+
+  /* The title carries overflow:hidden and text-overflow:ellipsis inline, but
+     they never took effect: the element itself was still as wide as its text
+     (up to 72px past its parent), so the parent clipped the box and the text
+     ended in a hard cut rather than an ellipsis. A nowrap element needs
+     min-width:0 before it will shrink and let its own ellipsis do the work. */
+  .topbar .title {
+    min-width: 0;
+    max-width: 100%;
+    flex-shrink: 1;
+  }
+
+  /* The subtitle carries an inline max-width of 400px — wider than the phone it
+     is being asked to fit on. It is explanatory text, and the heading above it
+     already names the screen, so it goes rather than squeezing everything else. */
+  .topbar-subtitle { display: none !important; }
+
+  /* Search, branch picker and avatar together wanted 437px inside a 375px bar.
+     Rather than let three things fight over the space, each gives up what it
+     can spare: the search keeps only its icon (Ctrl+K is a pointer affordance
+     and there is no keyboard here), the branch name truncates, and the user's
+     name and role go — the avatar already identifies them, and the menu behind
+     it still spells it out. */
+  /* Scoped to the bar, like the rule it works with in topbar.css. Unscoped it
+     shrank every page's search field to a 40px circle with no room to type. */
+  .topbar .search-box {
+    flex: 0 0 auto;
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+  .topbar .search-box span,
+  .topbar .search-box kbd { display: none; }
+
+  .topbar-right {
+    gap: 6px;
+    margin-left: auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+  }
+  .branch-pill {
+    max-width: 120px !important;
+    padding: 6px 9px !important;
+    min-width: 0;
+  }
+  .branch-pill span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .user-meta { display: none !important; }
+}
+
+@media (max-width: 479.98px) {
+  .branch-pill { max-width: 92px !important; }
+}
+
+
+/* ═══ Layout: columns collapse as the screen narrows ══════════════════════ */
+
+@media (max-width: 1023.98px) {
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .content, .page-pad { padding-left: 16px; padding-right: 16px; }
+}
+
+@media (max-width: 767.98px) {
+  .grid-2,
+  .grid-3,
+  .split,
+  .detail-split { grid-template-columns: 1fr !important; }
+
+  .content, .page-pad { padding-left: 12px; padding-right: 12px; }
+  .card { padding: 14px; border-radius: 12px; }
+
+  /* Inline grids, reached through the style attribute — see the note at the
+     top of this file for why this is done by matching attribute text. */
+  [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+
+  /* Rows of controls wrap instead of overflowing. */
+  [style*="display: flex"],
+  [style*="display:flex"] { flex-wrap: wrap; }
+
+  /* An inline min-width wider than the phone is the other dependable way to
+     force a horizontal scrollbar. Tables keep theirs — they scroll on purpose. */
+  .card [style*="min-width"]:not(table):not(thead):not(tbody):not(tr) {
+    min-width: 0 !important;
+  }
+}
+
+
+/* ═══ Tables ══════════════════════════════════════════════════════════════
+   Already wrapped in .table-wrap with overflow-x: auto, so they scroll rather
+   than break the page. What was missing was any sign that they scroll. */
+
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+@media (max-width: 767.98px) {
+  /* A shadow at the edge while there is more to see — on a touch device it is
+     the only cue that the table continues past the screen. The gradients are
+     pinned to the scroller (local) so they fade out as it reaches each end. */
+  .table-wrap {
+    background:
+      linear-gradient(to right, var(--paper) 30%, rgba(255, 255, 255, 0)) left / 24px 100% no-repeat,
+      linear-gradient(to left,  var(--paper) 30%, rgba(255, 255, 255, 0)) right / 24px 100% no-repeat,
+      linear-gradient(to right, rgba(0, 0, 0, .10), rgba(0, 0, 0, 0)) left / 10px 100% no-repeat,
+      linear-gradient(to left,  rgba(0, 0, 0, .10), rgba(0, 0, 0, 0)) right / 10px 100% no-repeat;
+    background-attachment: local, local, scroll, scroll;
+  }
+  .table-wrap table { font-size: 12.5px; }
+  .table-wrap th,
+  .table-wrap td { padding: 8px 10px; white-space: nowrap; }
+
+  /* Not every table got a .table-wrap. Collection has an 825px one sitting in a
+     316px .card-pad, and RBAC another — clipped by the card rather than
+     scrollable, so the right-hand columns cannot be reached at all.
+     Giving whatever directly holds a bare table its own scroller fixes those
+     two and any that are added later without the wrapper. The :not() keeps it
+     off .table-wrap, which already scrolls, so no nested scrollers appear. */
+  .main-col :has(> table):not(.table-wrap) {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* The scroller itself is not a phone rule. Collection's 833px table sits in
+   an 844px column on the tablet rail and had 21px nowhere to go — the wrapper
+   around every page used to absorb that by scrolling sideways itself, and it
+   no longer scrolls at all (it broke every sticky element inside a page). A
+   bare table gets its own scroller at every width; .table-wrap already has one. */
+.main-col :has(> table):not(.table-wrap) { overflow-x: auto; }
+
+
+/* ═══ Dialogs become bottom sheets ════════════════════════════════════════ */
+
+@media (max-width: 767.98px) {
+  /* The dialog is a flex child of .modal-backdrop, which centres it. Turning
+     it into a sheet is therefore a change to the PARENT's alignment, not a
+     switch to position:fixed — that would tear the panel out of the flow the
+     backdrop relies on. Bottom-aligned and edge to edge:
+       - a 24px inset on a 375px screen wastes 13% of the width
+       - the bottom is where a thumb rests, so the actions land under it */
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal,
+  .modal.modal-sm,
+  .modal.modal-wide,
+  .modal.td-modal {
+    max-width: 100%;
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .modal-head { padding: 14px 16px; }
+  .modal-body { padding: 16px; }
+
+  /* Confirm and cancel stay reachable however long the form runs. The head is
+     already sticky at the top; this is the same idea at the other end.
+     Two footers, because the dialogs disagree: the shared Modal renders
+     .modal-foot, while the pharmacy-registration ones render .reg-actions. */
+  .modal-foot,
+  .modal .reg-actions {
+    position: sticky;
+    bottom: 0;
+    background: var(--card);
+    padding: 12px 16px;
+    gap: 8px;
+    display: flex;
+  }
+  /* Full-width targets rather than two small buttons crowded into one corner. */
+  .modal-foot .btn,
+  .modal .reg-actions .btn { flex: 1; }
+}
+
+
+/* ═══ Forms, buttons, tabs ════════════════════════════════════════════════ */
+
+@media (max-width: 767.98px) {
+  /* 16px is not a style choice: iOS Safari zooms the page when a focused input
+     is smaller than this, and does not zoom back out on blur. */
+  input,
+  select,
+  textarea { font-size: 16px !important; }
+
+  .btn { min-height: 44px; padding: 10px 14px; }
+  .btn-sm { min-height: 38px; }
+  .form-row, .form-grid { grid-template-columns: 1fr !important; }
+
+  /* Tabs scroll sideways rather than wrapping into an unreadable stack. */
+  .tabs,
+  .tab-bar {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar,
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tabs .tab,
+  .tab-bar .tab { flex: 0 0 auto; }
+}
+
+
+/* ═══ RBAC — the two-pane permission editor ═══════════════════════════════ */
+
+@media (max-width: 767.98px) {
+  /* Roles list beside the permission grid. Both panes still fitted side by
+     side on a phone — 210px and 120px inside 346px — so the row never wrapped
+     and the grid was squeezed to 120px: seven columns of checkboxes in the
+     width of a thumb. Giving each pane a basis wider than half the row forces
+     the wrap, and they stack full width instead. */
+  .rbac-panes { flex-wrap: wrap; }
+  .rbac-panes > * { flex: 1 1 100% !important; min-width: 0; max-width: 100%; }
+}
+
+
+/* ═══ Quick Sales (the till) ══════════════════════════════════════════════
+   This screen renders outside the app shell — no sidebar, no topbar — and owns
+   the viewport itself, so the rules above never reach it. Its three panes
+   already stack on a narrow screen; what did not fit was the search row. */
+
+@media (max-width: 767.98px) {
+  /* Product search and barcode scan sit side by side. Together they wanted
+     499px inside a 359px row, so the scan field was cut off at the edge —
+     clipped rather than scrollable, which is unreachable rather than awkward.
+     Stacked, each gets the full width, and a barcode field you can actually
+     see is worth more here than one line saved. */
+  .pos-search-row { flex-wrap: wrap; }
+  .pos-search-row .pos-input-wrap { flex: 1 1 100%; min-width: 0; }
+}
+
+
+/* ═══ Charts ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 767.98px) {
+  .chart,
+  .chart-wrap,
+  .recharts-responsive-container { min-width: 0 !important; }
+  .chart svg { width: 100% !important; height: auto; }
+}

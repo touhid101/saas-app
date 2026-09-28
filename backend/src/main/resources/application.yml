@@ -1,0 +1,231 @@
+spring:
+  # A .env beside the jar (or in the working directory) overrides anything below.
+  # "optional:" so the application still starts when there is no such file, which
+  # is the normal case on a developer machine.
+  #
+  # It is read as a properties file, so Windows paths need forward slashes:
+  #   UPLOAD_ROOT=C:/pharma/uploads          works
+  #   UPLOAD_ROOT=C:\pharma\uploads          does not — \p is read as an escape
+  config:
+    # Both plausible working directories, because "./" means wherever the
+    # process was started from — `mvn spring-boot:run` in backend/ and an IDE
+    # launching from the project root disagree about that, and the symptom of
+    # guessing wrong is silent: the defaults apply and uploads land in the old
+    # folder with nothing in the log to say why.
+    #
+    # Listed last wins, so backend/.env beats the repo-root .env — which is the
+    # frontend Vite file and has nothing to say about the backend.
+    import: "optional:file:./.env[.properties],optional:file:./backend/.env[.properties]"
+  application:
+    name: friends-pharma-pos
+  datasource:
+    url: jdbc:postgresql://localhost:5489/minipos_db
+    username: pharma
+    password: pharma
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  jpa:
+    hibernate:
+      # Left as update deliberately, for now. With Flyway newly in charge the
+      # honest setting is `validate`, so the schema changes in exactly one
+      # place — but flipping both at once means a single disagreement between
+      # an entity and a column stops the application from starting, on
+      # production, during the deploy that was meant to fix it. Move to
+      # `validate` once a start-up with it succeeds on a copy of production.
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 50
+          lob:
+            non_contextual_creation: true
+    open-in-view: false
+  # Migrations run themselves from here on.
+  #
+  # They did not before: this was enabled:false, so the files under
+  # db/migration had never run on any environment. Every view, index, check
+  # constraint and seeded row existed only where somebody had run the .sql by
+  # hand — which is why a dashboard reading V_SUPPLIER_ACCOUNT_BRANCH answered
+  # on dev and returned 500 on production.
+  #
+  # baseline-version is 63, the highest file present, and that is the whole
+  # point of this change. It tells Flyway the schema already IS everything up
+  # to V63, so it records one baseline row and applies nothing below it. Two
+  # reasons it must not be 0, which is what it used to say:
+  #
+  #   · replaying V1..V63 over a live database would fail or do damage;
+  #   · four of those files (V2, V3, V4, V41) are Oracle — EXECUTE IMMEDIATE,
+  #     VARCHAR2, SQLCODE — and cannot run on Postgres at all.
+  #
+  # So V64 is the first migration that will ever execute. Anything numbered at
+  # or below 63 is history and is ignored for ever.
+  #
+  # Before this reaches an environment, that environment's schema must actually
+  # be at V63 — on production that means running prod_schema_sync.sql first.
+  # Baselining a database that is still missing objects records a claim that is
+  # not true, and nothing afterwards will notice.
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    # The history table belongs beside the tables it describes, not in public.
+    schemas: pharma
+    default-schema: pharma
+    baseline-on-migrate: true
+    baseline-version: 63
+    baseline-description: Schema as built by hand through V63
+    # Out-of-order stays off: a migration numbered below one already applied is
+    # almost always a merge accident, and silently running it is worse than
+    # refusing to start.
+    out-of-order: false
+  jackson:
+    date-format: yyyy-MM-dd
+    time-zone: Asia/Dhaka
+    serialization:
+      write-dates-as-timestamps: false
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+server:
+  port: 8585
+  servlet:
+    context-path: /
+
+  # Trust X-Forwarded-* from the reverse proxy.
+  #
+  # Without this the application believes it is http://127.0.0.1:8585, which is
+  # what nginx connects to, while the browser sends Origin: https://your-domain.
+  # Spring compares the two, concludes the request is cross-origin, and refuses
+  # it with "Invalid CORS request" — on a same-origin call that should never
+  # have involved CORS at all. It also makes every URL the application builds
+  # for itself come out as http://127.0.0.1:8585.
+  #
+  # Set this whenever anything sits in front: nginx, IIS, a load balancer.
+  # Leave it NONE only when the application faces the browser directly, since
+  # trusting forwarded headers from an untrusted client lets it lie about them.
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:FRAMEWORK}
+  error:
+    include-message: always
+
+# JWT Configuration
+app:
+  jwt:
+    secret: "FriendsPharmaSuperSecretKeyForJWT2024ProductionUsePleasChangeThis512BitLong"
+    access-token-expiry-ms: 28800000      # 8 hours (dev convenience — reduce in production)
+    refresh-token-expiry-ms: 604800000    # 7 days
+  cors:
+    # Every origin the browser may call this API from, comma separated. Exact
+    # matches only — scheme, host and port all count, and there is no wildcard:
+    # credentials are enabled, and the CORS spec forbids "*" alongside them.
+    #
+    # Set CORS_ALLOWED_ORIGINS in .env when hosting, e.g.
+    #   CORS_ALLOWED_ORIGINS=https://pharma.example.com
+    # A trailing slash does not match, and neither does http:// when the site
+    # is served over https://.
+    # 5180 is the e-commerce platform app (friends-pharma-ecommerce), a separate
+    # Vite project that only calls /api/ecom/**.
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:3000,http://localhost:5180,http://localhost:5190}
+  upload:
+    max-size-bytes: ${UPLOAD_MAX_SIZE_BYTES:2097152}   # 2 MB
+
+    # ── Where uploaded files live ──────────────────────────────────────────
+    #
+    # Set UPLOAD_ROOT and every folder follows it. Override any one of them
+    # individually if a single kind of file has to live somewhere else.
+    #
+    #   UPLOAD_ROOT=C:/pharma/uploads        →  C:/pharma/uploads/avatars
+    #                                           C:/pharma/uploads/logo
+    #                                           C:/pharma/uploads/product_image
+    #                                           C:/pharma/uploads/employee_image
+    #                                           C:/pharma/uploads/expense_receipt
+    #
+    # An ABSOLUTE path is used exactly as given. A RELATIVE one is anchored to
+    # the user's home directory, so the default lands on <user-home>/uploads —
+    # never inside the deployment, which a redeploy would wipe.
+    #
+    # The application logs every resolved path at startup; read them there
+    # rather than working them out from here.
+    root: ${UPLOAD_ROOT:uploads}
+
+    # The older variable names still work, so a server already setting them keeps
+    # working — the new name simply wins where both are present.
+    avatar-dir:        ${UPLOAD_AVATAR_DIR:${AVATAR_UPLOAD_DIR:${app.upload.root}/avatars}}
+    logo-dir:          ${UPLOAD_LOGO_DIR:${BRANCH_LOGO_UPLOAD_DIR:${app.upload.root}/logo}}
+    product-image-dir: ${UPLOAD_PRODUCT_IMAGE_DIR:${PRODUCT_IMAGE_UPLOAD_DIR:${app.upload.root}/product_image}}
+    # Staff photographs. Follows UPLOAD_ROOT like the other three.
+    employee-image-dir: ${UPLOAD_EMPLOYEE_IMAGE_DIR:${app.upload.root}/employee_image}
+    # Receipts on expense claims. Same structure as the staff photographs: under
+    # UPLOAD_ROOT unless moved on its own. Without this line the Java default
+    # (uploads/expense_receipt, relative → the user home) applied, so receipts
+    # landed beside nothing else the application stores.
+    expense-receipt-dir: ${UPLOAD_EXPENSE_RECEIPT_DIR:${app.upload.root}/expense_receipt}
+
+    # The public URLs those folders are served at. Change these only if something
+    # in front of the application rewrites the paths — the browser builds image
+    # URLs from them, so they must match what the server actually serves.
+    avatar-url-prefix:        ${UPLOAD_AVATAR_URL_PREFIX:/uploads/avatars/}
+    logo-url-prefix:          ${UPLOAD_LOGO_URL_PREFIX:/uploads/logo/}
+    product-image-url-prefix: ${UPLOAD_PRODUCT_IMAGE_URL_PREFIX:/uploads/product_image/}
+    employee-image-url-prefix: ${UPLOAD_EMPLOYEE_IMAGE_URL_PREFIX:/uploads/employee_image/}
+    expense-receipt-url-prefix: ${UPLOAD_EXPENSE_RECEIPT_URL_PREFIX:/uploads/expense_receipt/}
+  # ── E-commerce (docs/ecommerce) ──────────────────────────────────────────
+  #
+  # Off by default: with ECOM_ENABLED unset every /api/ecom/** request answers
+  # 404 and the ERP behaves exactly as before the storefront existed. Switch it
+  # on per environment in .env. The customer token has its own secret so a
+  # customer token can never verify as a staff token or the reverse — set
+  # ECOM_JWT_SECRET to at least 32 characters wherever ECOM_ENABLED=true.
+  ecom:
+    enabled: ${ECOM_ENABLED:false}
+    jwt:
+      secret: ${ECOM_JWT_SECRET:FriendsPharmaEcomCustomerTokenSecretChangeMeInProduction2026}
+      access-token-expiry-ms: ${ECOM_ACCESS_TOKEN_EXPIRY_MS:7200000}       # 2 hours
+      refresh-token-expiry-ms: ${ECOM_REFRESH_TOKEN_EXPIRY_MS:2592000000}  # 30 days
+    auth:
+      max-failed-logins: ${ECOM_MAX_FAILED_LOGINS:5}
+      lockout-minutes: ${ECOM_LOCKOUT_MINUTES:15}
+      min-password-length: 8
+    # Whether the wholesale region rule is armed (docs/ecommerce 23).
+    #
+    # false = how the platform behaved before V112: any pharmacy open to the
+    #         marketplace. Nothing that works today stops working.
+    # true  = wholesale and special customers may only buy from wholesale
+    #         pharmacies in the region approved on their own record.
+    #
+    # Leave it false until the region master is populated, the branches are
+    # marked WHOLESALE or BOTH, and the approved wholesalers have a region.
+    # Arming it before then stops those customers ordering.
+    wholesale-regions-enforced: ${ECOM_WHOLESALE_REGIONS_ENFORCED:false}
+  scheduler:
+    cart-idle-hours: 24
+    cart-cleanup-ms: 1800000              # 30 minutes
+    low-stock-check-ms: 21600000          # 6 hours
+    expiry-alert-cron: "0 0 8 * * *"     # daily 08:00
+    default-org-id: 1
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.friendspharma: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG

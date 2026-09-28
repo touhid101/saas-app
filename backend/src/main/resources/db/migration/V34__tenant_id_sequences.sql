@@ -1,0 +1,17 @@
+-- Withdrawn. Do not run.
+--
+-- This created SQ_BRANCH and SQ_ORG so that tenant activation could allocate its
+-- own ids instead of scanning for MAX() + 1. Both were unnecessary: ALL_BRANCH
+-- and ALL_ORGANIZATION already carry @GeneratedValue against SEQ_ALL_BRANCH and
+-- SEQ_ALL_ORG, so JPA was assigning ids all along.
+--
+-- Worse than unnecessary — actively harmful. Setting the id by hand did not
+-- override the generator, it was silently discarded: the branch was inserted
+-- under a generated id while the subscription, the module grant, the admin
+-- account and the seeded master data were all written against the id that had
+-- been thrown away. The pharmacy existed and nothing could find it, and the
+-- subscription gate answered "this branch no longer exists" to its own
+-- administrator.
+--
+-- Activation now saves the entity first and reads the id back. The sequences
+-- this file created have been dropped.

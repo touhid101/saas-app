@@ -1,0 +1,516 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOP BAR — the application header
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Loaded after styles.css and responsive.css, so it is the last word on the
+   header and nothing else has to be edited to make room for it.
+
+   The header carries four things that matter on every screen size:
+
+       menu        the way into navigation, on phones only
+       branch      which pharmacy you are signed in at
+       bell        what needs attention
+       account     who you are, and the way out
+
+   Everything else — the page title, the search field, the user's name and role
+   beside the avatar — is useful on a wide screen and negotiable on a narrow
+   one. They drop out in that order as the width falls, which is why the bar
+   stays legible at 375px instead of squeezing all seven items into a row that
+   fits none of them.
+
+   ── Why the title may leave ──
+
+   Dropping the page title from a header usually loses the answer to "where am
+   I". Not here: every page repeats its own name as a heading in the content
+   directly below, so on a phone the title appeared twice within 60px of itself
+   while the branch pill had no room. The heading below is the one that stays.
+
+   ── States ──
+
+   Hover, active and focus were previously set by inline onMouseEnter handlers,
+   which cannot express :active at all and leave keyboard users with no visible
+   focus. They are CSS here, so all three exist and the markup carries none of
+   them.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ═══ The bar ═════════════════════════════════════════════════════════════ */
+
+.topbar {
+  /* A fixed height rather than one that follows its contents: the title block
+     is two lines and the pills are one, so a content-driven height changed by
+     a few pixels between pages and the whole layout shifted under it. */
+  height: 64px;
+  min-height: 64px;
+  padding: 0 20px;
+  gap: 12px;
+
+  /* The bar must not clip, because both popovers hang below it and are its
+     descendants. An older rule set overflow-x:auto here for narrow screens,
+     and the spec then computes overflow-y from visible to auto as well — so
+     the bar scrolled its own dropdowns out of sight instead of letting them
+     overhang. Nothing needs to scroll inside the bar now that its contents
+     shrink to fit. */
+  overflow: visible;
+  /* Stays at the top of the window while the page scrolls under it — the
+     title, the search, the branch and the bell are the things somebody reaches
+     for from anywhere on a long page, and a bar that had scrolled three screens
+     up was a bar that was not there.
+
+     This used to be position: relative, which silently cancelled the sticky
+     declared in styles.css; the two files disagreed and this one loaded last.
+     The z-index it was there to enable still applies: sticky is positioned, so
+     a card scrolling under the bar does not draw over its edge. Below the
+     drawer (100) and its backdrop (90). Anything else that sticks to the top
+     of the window starts at var(--topbar-h), not 0. */
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+
+/* ═══ Shared control shape ════════════════════════════════════════════════
+   The menu button, the bell and the avatar chip are the same object at three
+   sizes: a rounded control that lifts slightly on hover, presses on click, and
+   shows a ring when reached by keyboard. Stated once so they cannot drift. */
+
+.nav-toggle,
+.icon-btn,
+.user-chip {
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background .14s ease, border-color .14s ease, transform .08s ease;
+}
+
+/* `display` is deliberately NOT in the rule above. Putting it there set
+   display:flex on .nav-toggle at every width — this file loads last, so it
+   overrode the display:none that keeps the hamburger off tablet and desktop,
+   and the button appeared beside a sidebar that was already on screen. The two
+   controls that are always present get it here; the hamburger gets it only
+   inside the phone media query, which is the one place it belongs. */
+.icon-btn,
+.user-chip { display: flex; }
+
+.nav-toggle:hover,
+.icon-btn:hover,
+.user-chip:hover {
+  background: var(--paper);
+  border-color: var(--ink-soft);
+}
+
+/* A press the finger can feel. 1px is enough to register and small enough not
+   to shift the row around it. */
+.nav-toggle:active,
+.icon-btn:active,
+.user-chip:active { transform: translateY(1px); }
+
+/* :focus-visible, not :focus — a mouse click should not leave a ring behind,
+   but a Tab key must. */
+.nav-toggle:focus-visible,
+.icon-btn:focus-visible,
+.user-chip:focus-visible,
+.search-box:focus-visible,
+.user-menu-item:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+
+/* ═══ Menu button ═════════════════════════════════════════════════════════ */
+
+.nav-toggle {
+  display: none;                 /* phones only — turned on in the band below */
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+
+
+/* ═══ Title ═══════════════════════════════════════════════════════════════ */
+
+.topbar-heading {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.topbar .title {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* ═══ Search ══════════════════════════════════════════════════════════════ */
+
+.search-box {
+  transition: border-color .14s ease, background .14s ease;
+  min-width: 190px;
+}
+.search-box:hover { border-color: var(--ink-soft); }
+
+/* One line, always. The label had no truncation, so when the bar ran short of
+   room the box kept its width and the text wrapped instead — "Search…" above
+   "(Ctrl+K)" inside a 129px pill, which reads as broken rather than tight. */
+.search-box span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* ═══ Branch pill ═════════════════════════════════════════════════════════
+   Read-only, so it gets no hover: a control that lights up under the cursor
+   and then does nothing when clicked is a worse lie than a flat label. */
+
+.branch-pill {
+  flex-shrink: 1;
+  min-width: 0;
+  /* The controls beside it are 40px. Left to its inline padding this came out
+     at 29 and sat visibly high in the row, so the bar read as a collection of
+     parts rather than one strip. 36 keeps a pill lighter than a button while
+     still sharing its centre line. */
+  height: 36px;
+  box-sizing: border-box;
+}
+
+
+/* ═══ Bell ════════════════════════════════════════════════════════════════ */
+
+.icon-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+
+/* ═══ Account chip ════════════════════════════════════════════════════════ */
+
+.user-chip {
+  gap: 10px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  max-width: 100%;
+  /* Matches the search and bell beside it. The 32px avatar plus padding came
+     to 42, which is close enough to 40 to look like a mistake rather than a
+     choice. */
+  height: 40px;
+  box-sizing: border-box;
+}
+.user-chip[aria-expanded="true"] {
+  background: var(--paper);
+  border-color: var(--amber);
+}
+
+
+/* ═══ Popovers — the account menu and the notification panel ══════════════
+
+   Both hang from the control that opens them, so they share everything except
+   their width. Stated once here rather than twice inline, which is how they
+   had drifted to different corner radii and shadows.
+
+   ── Why they stay dropdowns on a phone ──
+
+   The obvious mobile treatment is a full-width bottom sheet, and that is what
+   this was. But a 312px menu inside a 375px screen has 63px to spare — it
+   fits, anchored under the avatar that opened it, which is where the eye
+   already is. A sheet sliding up from the far edge is a bigger movement for no
+   gain. The sheet is kept for the case that actually needs it: a screen too
+   narrow to host the panel at a usable width, below.
+
+   The width is capped against the viewport rather than fixed, so the panel
+   shrinks to fit instead of running off the right edge — the 396px
+   notification panel would otherwise be 21px wider than the screen it sits on. */
+
+.topbar-popover {
+  /* Anchored to the button that opened it. Measuring from the viewport instead
+     sounds equivalent and is not: a fixed element counts the scrollbar as part
+     of the window, while the bar is laid out inside it, so the panel sat 6px
+     right of the avatar on any page tall enough to scroll. Anchoring to the
+     control has no such gap to get wrong. Where there is genuinely no room —
+     phones, below — the panel switches to the viewport instead. */
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow:
+    0 4px 6px -2px rgba(24, 36, 32, .06),
+    0 12px 28px -6px rgba(24, 36, 32, .18);
+  z-index: 200;
+  overflow: hidden;
+
+  /* Never taller than the space under the bar, and scroll inside if it wants
+     to be. A long notification list otherwise ran past the bottom of the
+     window with no way to reach the end. */
+  max-height: calc(100vh - 84px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  transform-origin: top right;
+  animation: popover-in .16s cubic-bezier(.2, .8, .3, 1);
+}
+
+/* Grows from the control it belongs to rather than fading in from nowhere, so
+   the connection between the button and the panel is visible. Short enough not
+   to delay the click that asked for it. */
+@keyframes popover-in {
+  from { opacity: 0; transform: translateY(-6px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topbar-popover { animation: none; }
+}
+
+/* The cap leaves room for the offset on the right plus an equal gap on the
+   left, so a panel wider than the screen shrinks instead of running past it. */
+.user-menu   { width: min(312px, calc(100vw - 40px)); }
+.notif-panel { width: min(396px, calc(100vw - 40px)); }
+
+.user-menu-item {
+  width: 100%;
+  padding: 11px 18px;
+  min-height: 44px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  transition: background .12s ease;
+}
+.user-menu-item:hover { background: var(--paper); }
+.user-menu-item:active { background: var(--line); }
+
+
+/* ═══ Sign out ════════════════════════════════════════════════════════════
+   Set apart from the rows above it: its own block, its own colour, and a
+   border, because it is the one item in this menu that ends the session. It
+   should not be reachable by the same absent-minded flick that opens a
+   profile. */
+
+.signout-btn {
+  width: 100%;
+  padding: 11px 14px;
+  min-height: 44px;
+  background: var(--clay-soft);
+  border: 1px solid var(--clay);
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--clay);
+  transition: background .14s ease, transform .08s ease;
+}
+.signout-btn:hover  { background: var(--clay); color: #fff; }
+.signout-btn:hover svg { stroke: #fff; }
+.signout-btn:active { transform: translateY(1px); }
+.signout-btn:focus-visible { outline: 2px solid var(--clay); outline-offset: 2px; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TABLET — 768 to 1023
+   The sidebar is a rail here, so the bar has more room than a phone and less
+   than a desktop. Only the spacing tightens.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Between a phone and a comfortable desktop the search is the first thing to
+   give way. A 190px field plus the title, branch, bell and account does not
+   fit under about 1200px without every one of them looking squeezed — and a
+   search box narrow enough to fit is a search box too narrow to read.
+   Collapsed to its icon it still opens the same panel on click, and the space
+   goes to the branch name, which cannot be guessed at from an icon. */
+@media (max-width: 1199.98px) {
+  /* .topbar .search-box, not .search-box — the same scoping mistake this file
+     already fixed once, a few rules further down, and for the same reason.
+     Nine components use this class and only one of them is the bar. Unscoped,
+     the rule collapsed the product picker on Purchase, the filter on Purchase
+     Return, Sales Return, Sales Activity, Sales Discount, Medicine Catalogue
+     and Product Master to a 40px square on every screen under 1200px — an icon
+     with no field beside it, which reads as a broken control rather than a
+     deliberate one.
+
+     Collapsing to an icon is right for the bar, where the space buys the branch
+     name and the panel opens on click anyway. Nowhere else has anything to buy
+     with it. */
+  .topbar .search-box {
+    min-width: 0;
+    width: 40px;
+    /* Height stated, not left to padding: zeroing the padding to make it square
+       also collapsed it to 16px, so it sat as a sliver beside two 40px
+       controls. The three are one row of buttons and must measure the same. */
+    height: 40px;
+    padding: 0;
+    border-radius: 10px;
+    justify-content: center;
+    align-items: center;
+    flex: 0 0 auto;
+  }
+  .topbar .search-box span,
+  .topbar .search-box kbd { display: none; }
+}
+
+@media (max-width: 1023.98px) {
+  .topbar { padding: 0 16px; gap: 10px; }
+  .topbar-right { gap: 8px; }
+  .branch-pill { max-width: 170px !important; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PHONE — below 768
+   Four items: menu, branch, bell, account. Nothing else earns the width.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 767.98px) {
+  .topbar {
+    height: 56px;
+    min-height: 56px;
+    padding: 0 12px;
+    gap: 8px;
+    /* Restated: the older 620px rule that sets overflow-x lives in a narrower
+       media query, so it would otherwise win back the clipping below 620px. */
+    overflow: visible;
+  }
+
+  /* On a phone the panels leave the button and take the width of the screen,
+     minus a margin. Anchoring the 396px notification panel to the bell put its
+     left edge 49px off a 375px screen, with the heading cut in half — there is
+     simply not enough room to hang a panel from a control that sits two
+     controls in from the edge. Pinned to the window it always fits, and it is
+     still a dropdown under the bar rather than a sheet from the bottom. */
+  .topbar-popover {
+    position: fixed;
+    top: 64px;                   /* 56px bar + 8px */
+    left: 12px;
+    right: 12px;
+    width: auto !important;
+    max-width: none;
+    max-height: calc(100vh - 76px);
+    transform-origin: top center;
+  }
+
+  /* Restated here rather than left to responsive.css. A media query adds no
+     specificity, so that file's rule and this file's base display:none tie —
+     and this file loads later, which would have hidden the hamburger on the one
+     size that needs it. */
+  .nav-toggle { display: flex; }
+
+  /* Gone on a phone: the page repeats its own name as a heading immediately
+     below, and the search field is a pointer affordance with a Ctrl+K hint on
+     a device that has neither.
+
+     The spacer goes too. It exists to push the actions right on a wide bar,
+     but it is flex:1 and so splits the free space evenly with .topbar-right —
+     which left the branch pill 48px to render a 22-character name in. With no
+     title or search left to separate, there is nothing for it to do. */
+  .topbar-heading,
+  .topbar-subtitle,
+  /* .topbar .search-box, not .search-box. Every other selector here is scoped
+     to the bar, and this one was not — so it also hid the search field on any
+     page that reuses the class, leaving the Medicine Catalogue and Product
+     Master on a phone with a manufacturer dropdown and no way to search. */
+  .topbar .search-box,
+  .topbar .spacer { display: none !important; }
+
+  /* The branch takes the space the title and search gave up, and truncates
+     rather than pushing the bell and avatar off the right edge. */
+  .topbar-right {
+    flex: 1;
+    gap: 8px;
+    margin-left: 0;
+    min-width: 0;
+    justify-content: flex-end;
+  }
+  .branch-pill {
+    margin-right: auto;          /* left-aligned; the actions stay right */
+    max-width: none !important;
+    flex: 0 1 auto;
+    min-width: 0;
+    padding: 7px 12px !important;
+    height: 36px;
+  }
+
+  /* Just the avatar. The name and role are one tap away in the menu, and the
+     avatar is what people actually recognise. */
+  .user-meta { display: none !important; }
+  .user-chip { padding: 4px; gap: 0; }
+  .user-chip > svg:last-child { display: none; }   /* the chevron */
+
+  /* The popovers stay anchored dropdowns here — see the note above. Only the
+     rows grow, because a finger needs more room than a cursor. */
+  .user-menu-item {
+    padding: 13px 18px;
+    min-height: 50px;
+    font-size: 14.5px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE SHEET FALLBACK — only where a dropdown genuinely will not fit
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Below 360px the cap above has squeezed the panel to 344px or less, and the
+   account menu's identity header — a 50px avatar beside a name, an email and a
+   role pill — starts wrapping into something unreadable. That is the point at
+   which a dropdown stops being the better shape, so the sheet takes over: full
+   width, anchored to the bottom, where there is no width to run out of.
+
+   It also applies to any short viewport, whatever the width. A phone held
+   sideways gives about 380px of height; a panel capped at
+   `100vh - 84px` then has under 300px to show a header, four rows and a sign
+   out, and scrolls almost immediately. The sheet gets 88vh and starts from the
+   bottom edge, which is the more usable of the two bad options. */
+
+@media (max-width: 359.98px), (max-height: 480px) and (max-width: 767.98px) {
+  .topbar-popover {
+    position: fixed;
+    top: auto !important;
+    bottom: 0;
+    left: 0;
+    right: 0 !important;
+    width: 100%;
+    max-width: 100%;
+    max-height: 88vh;
+    border-radius: 16px 16px 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    box-shadow: 0 -8px 40px rgba(24, 36, 32, .28);
+    /* Clear of the home indicator on a phone that has one. */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    transform-origin: bottom center;
+    animation: sheet-in .2s cubic-bezier(.2, .8, .3, 1);
+  }
+
+  @keyframes sheet-in {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@media (max-width: 479.98px) {
+  .topbar { padding: 0 10px; }
+  /* No cap: the pill already shrinks before the bell and avatar, and whatever
+     is left is more useful showing the pharmacy's name than held in reserve.
+     A fixed cap here truncated "Friends Pharma 60 Feet" to "Frie…" on a screen
+     that had room for most of it. */
+  .branch-pill { padding: 7px 10px !important; }
+  .branch-pill span:last-child { font-size: 12px; }
+}

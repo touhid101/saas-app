@@ -1,0 +1,1726 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   HR — five screens, one visual language
+   ═══════════════════════════════════════════════════════════════════════════
+
+   The same breakpoints as QuickSales and Purchase, so the whole application
+   behaves alike on a given device:
+
+       >= 1200   full tables, side-by-side panes
+       768–1199  tables lose the columns that are advisory rather than entered
+       < 768     one card per row, and a fixed bottom tab bar
+
+   The bottom bar is the QuickSales pattern, not a new one: fixed, icons over
+   labels, 48px targets, a teal active state with a 2.5px bar along the top edge
+   so it survives a colour-blind reading, and env(safe-area-inset-bottom) to
+   clear a phone's home indicator. The pane it sits under carries matching
+   bottom padding, because a control hidden behind a nav bar is a control that
+   does not exist.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ═══ Page frame ═════════════════════════════════════════════════════════ */
+
+.hr-page { padding: 20px 24px 28px; display: flex; flex-direction: column; gap: 16px; }
+
+.hr-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+}
+.hr-head-title { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.hr-head-title h2 { margin: 0; font-size: 19px; letter-spacing: -0.01em; }
+.hr-head-title p  { margin: 0; font-size: 12.5px; color: var(--ink-soft); }
+.hr-head-actions  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+
+/* ═══ KPI strip ══════════════════════════════════════════════════════════
+
+   auto-fit rather than a fixed count: the same markup gives four across on a
+   laptop and two on a tablet without a second breakpoint to keep in step. */
+
+.hr-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.hr-kpi {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 6px; min-width: 0;
+}
+.hr-kpi-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--ink-soft);
+}
+.hr-kpi-value {
+  font-size: 24px; font-weight: 700; line-height: 1.1;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
+}
+.hr-kpi-note { font-size: 11.5px; color: var(--ink-soft); }
+/* The one tile that is a call to action rather than a fact. */
+.hr-kpi.is-warn { border-color: var(--amber); }
+.hr-kpi.is-warn .hr-kpi-value { color: var(--amber-deep); }
+
+
+/* ═══ Filters ════════════════════════════════════════════════════════════ */
+
+.hr-filters {
+  display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap;
+}
+.hr-filter { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.hr-filter > label {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-soft); white-space: nowrap;
+}
+.hr-filter input, .hr-filter select {
+  padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--paper); color: var(--ink); font-size: 13px;
+  min-height: 36px; min-width: 0;
+}
+.hr-filter input:focus, .hr-filter select:focus {
+  outline: none; border-color: var(--amber); background: var(--card);
+  box-shadow: 0 0 0 3px var(--amber-soft);
+}
+/* Grows to share the row, but stops: one status dropdown stretched across a
+   1440px card reads as a mistake, and a select that wide is no easier to use
+   than one a third of the width. */
+.hr-filter-grow { flex: 1 1 200px; max-width: 340px; }
+/* Except where the row is the whole width anyway — the phone sheet. */
+.hr-sheet .hr-filter-grow { max-width: none; }
+
+
+/* ═══ Tables ═════════════════════════════════════════════════════════════
+
+   Own scroll container, so the *page* never scrolls sideways — a horizontal
+   scrollbar on the document moves the header and the totals too, and then
+   nothing is where it was. */
+
+.hr-table-wrap { overflow-x: auto; overflow-y: visible; }
+.hr-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.hr-table th {
+  text-align: left; padding: 9px 12px; white-space: nowrap;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft);
+  border-bottom: 1px solid var(--line);
+}
+.hr-table td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.hr-table tbody tr:last-child td { border-bottom: none; }
+.hr-table tbody tr:hover { background: var(--paper); }
+.hr-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* The heading sits over the figures it names. `.hr-table th` above sets
+   text-align: left with more specificity than .hr-num alone, so every numeric
+   column read left-aligned "CASH IN" over right-aligned amounts. */
+.hr-table th.hr-num { text-align: right; }
+.hr-table th.hr-num .hr-th-sort { flex-direction: row-reverse; }
+.hr-table-empty { padding: 28px 12px; text-align: center; color: var(--ink-soft); font-size: 13px; }
+
+
+/* ═══ The payslip ════════════════════════════════════════════════════════
+
+   Earnings on the left, deductions on the right, net across the foot. A
+   payslip read as one column loses the shape everybody already knows. */
+
+.hr-payslip { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.hr-payslip-col { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hr-payslip-col > h4 {
+  margin: 0 0 6px; font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-soft);
+}
+.hr-payslip-line {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 5px 0; font-size: 13px; border-bottom: 1px dashed var(--line);
+}
+.hr-payslip-line:last-child { border-bottom: none; }
+.hr-payslip-name { min-width: 0; }
+/* "40% of 20,000" under the name — the working, so the figure is checkable. */
+.hr-payslip-basis {
+  display: block; font-size: 10.5px; color: var(--ink-soft);
+  font-family: 'IBM Plex Mono', monospace;
+}
+.hr-payslip-amount { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
+.hr-payslip-sub {
+  display: flex; justify-content: space-between; gap: 12px;
+  margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line);
+  font-weight: 700; font-size: 13.5px;
+}
+.hr-payslip-net {
+  grid-column: 1 / -1; display: flex; align-items: baseline;
+  justify-content: space-between; gap: 12px;
+  margin-top: 4px; padding-top: 12px; border-top: 2px solid var(--ink);
+  font-size: 17px; font-weight: 700;
+}
+.hr-payslip-net .hr-payslip-amount { font-size: 20px; }
+
+
+/* ═══ The payroll lifecycle, as a rail ═══════════════════════════════════
+
+   Six states in order with the current one marked. A run's stage is the first
+   thing anyone opening this screen wants, and a status word alone does not say
+   what comes next. */
+
+.hr-steps { display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
+.hr-step {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 12px 6px 10px; font-size: 11.5px; font-weight: 700;
+  color: var(--ink-soft); white-space: nowrap;
+}
+.hr-step-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--line); flex-shrink: 0;
+}
+.hr-step.is-done { color: var(--ink); }
+.hr-step.is-done .hr-step-dot { background: var(--sage); }
+.hr-step.is-now  { color: var(--teal); }
+.hr-step.is-now .hr-step-dot {
+  background: var(--teal);
+  box-shadow: 0 0 0 3px var(--teal-soft);
+}
+.hr-step-sep { width: 18px; height: 1px; background: var(--line); flex-shrink: 0; }
+
+
+/* ═══ Attendance register ════════════════════════════════════════════════ */
+
+/* A row of one-tap status buttons, which is how a register is actually filled. */
+.hr-mark { display: flex; gap: 4px; flex-wrap: wrap; }
+.hr-mark button {
+  padding: 5px 10px; border-radius: 7px; border: 1px solid var(--line);
+  background: var(--paper); color: var(--ink-soft);
+  font-size: 11.5px; font-weight: 700; cursor: pointer;
+  min-height: 32px; transition: background .12s ease, color .12s ease, border-color .12s ease;
+}
+.hr-mark button:hover:not(:disabled) { border-color: var(--ink-soft); color: var(--ink); }
+.hr-mark button.is-on {
+  background: var(--teal); border-color: var(--teal); color: #fff;
+}
+.hr-mark button:disabled { opacity: .45; cursor: not-allowed; }
+.hr-mark button:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+
+
+/* ═══ Profile ════════════════════════════════════════════════════════════ */
+
+.hr-profile { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 16px; }
+.hr-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 18px; }
+.hr-fact { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hr-fact-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft);
+}
+.hr-fact-value { font-size: 13.5px; overflow-wrap: anywhere; }
+
+/* Why payroll will skip somebody — said, not hinted. */
+.hr-blocked {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 10px 12px; border-radius: 8px;
+  background: var(--amber-soft); color: var(--amber-deep);
+  font-size: 12.5px; line-height: 1.45;
+}
+
+/* A note where the application is deliberately not deciding something. */
+.hr-policy-note {
+  padding: 10px 12px; border-radius: 8px; border: 1px dashed var(--line);
+  background: var(--paper); color: var(--ink-soft);
+  font-size: 12px; line-height: 1.5;
+}
+
+
+/* ═══ Forms inside modals ════════════════════════════════════════════════ */
+
+.hr-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+.hr-form-full { grid-column: 1 / -1; }
+.hr-form input, .hr-form select, .hr-form textarea {
+  width: 100%; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  font-size: 13px; min-height: 38px; font-family: inherit;
+}
+.hr-form textarea { min-height: 70px; resize: vertical; }
+.hr-form input:focus, .hr-form select:focus, .hr-form textarea:focus {
+  outline: none; border-color: var(--amber); background: var(--card);
+  box-shadow: 0 0 0 3px var(--amber-soft);
+}
+
+
+
+/* ═══ 768–1199: give up what is advisory ════════════════════════════════ */
+
+@media (min-width: 768px) and (max-width: 1199.98px) {
+  .hr-page { padding: 18px 18px 24px; }
+  .hr-profile { grid-template-columns: minmax(0, 1fr); }
+  /* Columns a reader can reach on a wider screen, or by opening the row. */
+  .hr-col-advisory { display: none; }
+}
+
+
+/* ═══ < 768: one card per row, and a bottom bar ═════════════════════════ */
+
+@media (max-width: 767.98px) {
+
+  .hr-page {
+    padding: 14px 14px 0;
+    /* Clear of the fixed bar. Without this the last row sits under it, and a
+       row you cannot reach is a row that is not there. */
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .hr-kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hr-kpi { padding: 11px 12px; }
+  .hr-kpi-value { font-size: 20px; }
+
+  .hr-head { flex-direction: column; align-items: stretch; }
+  .hr-head-actions { justify-content: flex-start; }
+  /* The worded buttons share the row; an icon-only one keeps its square,
+     or Refresh becomes a wide empty box with a glyph adrift in the middle. */
+  .hr-head-actions .btn:not(.btn-icon-only) { flex: 1 1 auto; justify-content: center; }
+  .hr-head-actions .btn-icon-only { flex: 0 0 auto; }
+
+  .hr-filters { flex-direction: column; align-items: stretch; }
+  /* flex: 1 1 200px was written for a row. Once .hr-filters turns into a
+     column the same rule grows the field *downwards*, so two filters in the
+     phone sheet sat at opposite ends of the screen with a hole between them. */
+  .hr-filter, .hr-filter-grow { width: 100%; max-width: none; flex: 0 0 auto; }
+  .hr-filter input, .hr-filter select { min-height: 42px; }
+
+  /* ── Table becomes cards ──
+     The header names travel in as data-label, so there is one set of markup
+     and no second table to keep in step with the first. */
+  .hr-table-wrap { overflow-x: visible; }
+  .hr-table thead { display: none; }
+  .hr-table, .hr-table tbody, .hr-table tr, .hr-table td { display: block; width: auto; }
+
+  .hr-table tbody tr {
+    border: 1px solid var(--line); border-radius: var(--radius-sm);
+    padding: 12px 14px; margin-bottom: 10px; background: var(--card);
+  }
+  .hr-table tbody tr:last-child { margin-bottom: 0; }
+  .hr-table tbody tr:hover { background: var(--card); }
+
+  .hr-table tbody td {
+    border: none; padding: 4px 0; min-width: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; text-align: right;
+  }
+  .hr-table tbody td::before {
+    content: attr(data-label); flex-shrink: 0; text-align: left;
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink-soft); font-weight: 700;
+  }
+
+  /* The name leads the card as its heading rather than as a labelled row — on
+     a card the first line reads as the title whether or not it is marked one. */
+  .hr-table tbody td.hr-td-lead {
+    display: block; text-align: left; font-weight: 600; font-size: 14.5px;
+    margin-bottom: 6px; padding-bottom: 8px; border-bottom: 1px dashed var(--line);
+  }
+  .hr-table tbody td.hr-td-lead::before { display: none; }
+
+  /* Actions become a full-width row at the foot of the card, not icons wedged
+     against the edge of a phone screen. */
+  .hr-table tbody td.hr-td-actions {
+    display: flex; justify-content: stretch; gap: 8px;
+    margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line);
+  }
+  .hr-table tbody td.hr-td-actions::before { display: none; }
+  .hr-table tbody td.hr-td-actions .btn { flex: 1; justify-content: center; min-height: 38px; }
+
+  /* A payslip stacks: two columns at 360px gives each about 160px, which is
+     less than a component name plus its amount needs. */
+  .hr-payslip { grid-template-columns: 1fr; gap: 14px; }
+  .hr-profile { grid-template-columns: 1fr; }
+  .hr-form { grid-template-columns: 1fr; }
+
+  /* The lifecycle rail scrolls rather than wrapping into three ragged lines. */
+  .hr-steps { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+
+  .hr-mark button { flex: 1; min-height: 40px; }
+
+
+  /* ── The bottom bar — the QuickSales pattern, not a new one ── */
+
+  .hr-tabs {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    display: grid; gap: 1px;
+    background: var(--line); border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  /* One column per tab, whatever the count. The old rules named 2, 3 and 4
+     explicitly, so Attendance (six panes) and Employees (five) fell back to a
+     single column and drew the bar as a tall stack over half the screen. */
+  .hr-tabs { grid-auto-flow: column; grid-auto-columns: 1fr; }
+
+  /* Past four the labels have to give ground before the targets do: the row
+     stays 48px tall and every tab keeps its full width. */
+  .hr-tabs-5 .hr-tab, .hr-tabs-6 .hr-tab { padding-left: 2px; padding-right: 2px; }
+  .hr-tabs-5 .hr-tab span, .hr-tabs-6 .hr-tab span {
+    font-size: 9.5px; letter-spacing: -.01em;
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .hr-tabs-5 .hr-tab-badge, .hr-tabs-6 .hr-tab-badge { transform: translateX(16px); }
+
+  .hr-tab {
+    position: relative; display: flex; flex-direction: column; align-items: center;
+    gap: 3px; padding: 9px 4px 8px;
+    /* 48px of target, the same as the till. */
+    min-height: 48px; border: none; background: var(--card); color: var(--ink-soft);
+    font-size: 11px; font-weight: 700; cursor: pointer;
+  }
+  .hr-tab.is-on { color: var(--teal); }
+  /* A bar along the top edge, so the active tab survives a colour-blind
+     reading rather than resting on the teal alone. */
+  .hr-tab.is-on::before {
+    content: ""; position: absolute; inset: 0 0 auto; height: 2.5px; background: var(--teal);
+  }
+  .hr-tab:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+
+  .hr-tab-badge {
+    position: absolute; top: 4px; right: 50%; transform: translateX(22px);
+    min-width: 16px; padding: 0 4px; border-radius: 999px;
+    background: var(--clay); color: #fff;
+    font-size: 9.5px; font-weight: 800; line-height: 16px;
+  }
+
+  /* Only the chosen pane is on screen. */
+  .hr-pane { display: none; }
+  .hr-pane.is-on { display: flex; flex-direction: column; gap: 14px; }
+}
+
+
+/* ═══ >= 768: no bottom bar, every pane at once ═════════════════════════ */
+
+@media (min-width: 768px) {
+  .hr-tabs { display: none; }
+  /* The panes are a phone device. On anything wider they are sections of one
+     page, and hiding them would leave a desktop user tapping a bar that is not
+     there to find the half of the screen that is missing. */
+  .hr-pane { display: flex; flex-direction: column; gap: 16px; }
+}
+
+
+/* ═══ Very small ════════════════════════════════════════════════════════
+
+   360px, not 400: at 390 — the width of most phones in use — two tiles across
+   still gives each about 180px, which fits a two-line label and its figure. One
+   per row there pushed every row of data below the fold. */
+
+@media (max-width: 360px) {
+  .hr-kpis { grid-template-columns: 1fr; }
+  .hr-tab span { font-size: 10px; }
+}
+
+
+/* ═══ Motion ════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .hr-mark button, .hr-filter input, .hr-filter select { transition: none; }
+}
+
+/* ── The HR calendar ─────────────────────────────────────────────────────
+   A month grid rather than a list, because "who is away on Tuesday" is a
+   question people answer by looking at a shape. Seven columns from 768px up;
+   below that the days stack, since a seven-column grid on a phone gives each
+   day about forty pixels and nothing legible fits in it. */
+.hr-calendar-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  margin-top: 12px;
+}
+@media (min-width: 768px) {
+  .hr-calendar-grid { grid-template-columns: repeat(7, 1fr); }
+}
+
+.hr-cal-day {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px;
+  min-height: 92px;
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hr-cal-day.is-off      { background: var(--paper); }
+.hr-cal-day.is-holiday  { border-color: var(--amber); }
+
+.hr-cal-date {
+  display: flex; align-items: baseline; justify-content: space-between;
+  font-size: 12px; color: var(--ink-soft);
+}
+.hr-cal-date strong { font-size: 15px; color: var(--ink); }
+
+.hr-cal-off { font-size: 11px; color: var(--ink-soft); font-style: italic; }
+
+.hr-cal-event {
+  font-size: 11px;
+  line-height: 1.3;
+  padding: 3px 6px;
+  border-radius: 5px;
+  background: var(--paper);
+  border-left: 3px solid var(--ink-soft);
+  overflow: hidden;
+}
+.hr-cal-kind {
+  display: block;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+.hr-cal-what { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* One colour per kind, so a month reads at a glance without a legend. */
+.hr-cal-event.ev-leave        { border-left-color: var(--teal); }
+.hr-cal-event.ev-birthday     { border-left-color: var(--sage); }
+.hr-cal-event.ev-anniversary  { border-left-color: var(--amber); }
+.hr-cal-event.ev-confirmation { border-left-color: var(--amber); }
+.hr-cal-event.ev-increment    { border-left-color: var(--clay); }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HR COMPONENT LAYER
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Everything below is drawn from the tokens already declared in styles.css —
+   --ink, --paper, --card, --line, --amber, --teal, --sage, --clay and the two
+   shadows. Not one literal colour is written here, which is what makes the four
+   themes (default, dark, ocean, forest) work on HR without a fifth palette to
+   maintain.
+
+   The spacing scale is 4 / 8 / 12 / 16 / 20 / 24, the radii are --radius-sm and
+   --radius, and every transition is 120–180ms. Where a rule departs from those,
+   the reason is written beside it.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ═══ Breadcrumb ═════════════════════════════════════════════════════════
+
+   Deliberately quiet: it orients, it is not read. Mono and uppercase, the same
+   treatment every other label in HR gets, so it reads as furniture rather than
+   as the first line of content. */
+
+.hr-crumb ol {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 4px; margin: 0 0 2px; padding: 0; list-style: none;
+}
+.hr-crumb li { display: flex; align-items: center; gap: 4px; }
+.hr-crumb li > span, .hr-crumb li > button {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft);
+}
+.hr-crumb li > button {
+  border: none; background: none; padding: 0; cursor: pointer;
+  transition: color .12s ease;
+}
+.hr-crumb li > button:hover { color: var(--amber-deep); text-decoration: underline; }
+.hr-crumb li > button:focus-visible {
+  outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 3px;
+}
+.hr-crumb li.is-current > span { color: var(--ink); }
+.hr-crumb-sep { color: var(--line); flex-shrink: 0; }
+
+/* On a phone the trail is one line of a screen that has none to spare, and the
+   page title says where you are anyway. Only the parent stays. */
+@media (max-width: 767.98px) {
+  .hr-crumb li:not(:first-child):not(.is-current) { display: none; }
+}
+
+
+/* ═══ Buttons — the states the base .btn did not carry ═══════════════════ */
+
+/* Square, so a lone glyph is centred rather than sitting in a pill of padding
+   sized for words that are not there. */
+.btn-icon-only {
+  padding: 0; width: 34px; height: 34px; justify-content: center; gap: 0;
+}
+.btn-sm.btn-icon-only { width: 30px; height: 30px; }
+
+/* Busy: the button holds its width so the row does not jump as the label
+   changes, and stops accepting a second press. */
+.btn.is-busy { cursor: progress; opacity: .8; }
+
+.hr-spin {
+  width: 13px; height: 13px; flex-shrink: 0;
+  border: 2px solid currentColor; border-top-color: transparent;
+  border-radius: 50%; animation: hr-spin .7s linear infinite;
+}
+@keyframes hr-spin { to { transform: rotate(360deg); } }
+
+/* A row's own actions, and the menu behind the third of them. */
+.hr-row-actions { display: inline-flex; align-items: center; gap: 6px; position: relative; }
+
+.hr-menu {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 30;
+  min-width: 180px; padding: 5px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); box-shadow: var(--shadow-lg);
+  animation: hr-pop .14s ease-out;
+}
+@keyframes hr-pop {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hr-menu-item {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  padding: 8px 10px; border: none; border-radius: 7px;
+  background: none; color: var(--ink); text-align: left;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: background .12s ease, color .12s ease;
+}
+.hr-menu-item:hover:not(:disabled) { background: var(--paper); }
+.hr-menu-item:focus-visible { outline: none; background: var(--paper); box-shadow: inset 0 0 0 2px var(--teal); }
+.hr-menu-item:disabled { opacity: .45; cursor: not-allowed; }
+.hr-menu-item.is-danger { color: var(--clay); }
+.hr-menu-item.is-danger:hover:not(:disabled) { background: var(--clay-soft); }
+.hr-menu-item svg { flex-shrink: 0; opacity: .8; }
+
+
+/* ═══ KPI — the clickable variant and the icon ═══════════════════════════ */
+
+.hr-kpi-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 8px; margin-bottom: 2px;
+  background: var(--teal-soft); color: var(--teal);
+}
+.hr-kpi.is-warn .hr-kpi-icon { background: var(--amber-soft); color: var(--amber-deep); }
+
+/* A tile that opens something. Text-aligned left because a button element
+   centres by default and a KPI is not a label on a button. */
+.hr-kpi.is-link {
+  text-align: left; cursor: pointer; font: inherit; color: inherit;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.hr-kpi.is-link:hover {
+  border-color: var(--teal); box-shadow: var(--shadow); transform: translateY(-1px);
+}
+.hr-kpi.is-link:focus-visible {
+  outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-soft);
+}
+
+
+/* ═══ Search ═════════════════════════════════════════════════════════════ */
+
+.hr-search { position: relative; display: flex; align-items: center; min-width: 0; }
+
+.hr-search-icon {
+  position: absolute; left: 11px; color: var(--ink-soft); pointer-events: none;
+}
+
+.hr-search-input {
+  width: 100%; min-height: 36px;
+  padding: 7px 34px 7px 32px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  font-size: 13px; font-family: inherit;
+  transition: border-color .14s ease, box-shadow .14s ease, background .14s ease;
+}
+/* Inside a filter bar, .hr-filter input (0,1,1) outranks .hr-search-input (0,1,0)
+   and takes the icon's room away; restore it at the same specificity. */
+.hr-filter .hr-search-input { padding-left: 32px; padding-right: 34px; }
+.hr-search-input::placeholder { color: var(--ink-soft); }
+.hr-search-input:hover { border-color: var(--ink-soft); }
+.hr-search-input:focus {
+  outline: none; border-color: var(--amber); background: var(--card);
+  box-shadow: 0 0 0 3px var(--amber-soft);
+}
+/* The browser's own clear cross would sit beside ours. */
+.hr-search-input::-webkit-search-cancel-button { display: none; }
+
+.hr-search-clear {
+  position: absolute; right: 6px;
+  display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 6px;
+  border: none; background: none; color: var(--ink-soft); cursor: pointer;
+  transition: background .12s ease, color .12s ease;
+}
+.hr-search-clear:hover { background: var(--line); color: var(--ink); }
+.hr-search-clear:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+
+
+/* ═══ Filter bar ═════════════════════════════════════════════════════════ */
+
+.hr-filterbar {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; width: 100%;
+}
+.hr-filterbar-fields { display: flex; flex-direction: column; gap: 10px; flex: 1 1 320px; min-width: 0; }
+.hr-filterbar-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* Advanced filters, revealed rather than always present. */
+.hr-filters-adv {
+  padding-top: 10px; border-top: 1px dashed var(--line);
+  animation: hr-reveal .16s ease-out;
+}
+@keyframes hr-reveal {
+  from { opacity: 0; transform: translateY(-3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hr-filter-hint { font-size: 11px; color: var(--ink-soft); }
+
+/* The phone control — shown only below 768px, see the block further down. */
+.hr-filterbar-open {
+  display: none; align-items: center; gap: 8px; position: relative;
+  min-height: 42px; padding: 9px 14px; width: 100%;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--card); color: var(--ink); font-size: 13.5px; font-weight: 600;
+}
+.hr-filterbar-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px;
+  background: var(--teal); color: #fff;
+  font-size: 10.5px; font-weight: 800; font-style: normal;
+}
+
+/* ── The sheet the filters open into on a phone ── */
+.hr-sheet-backdrop {
+  position: fixed; inset: 0; z-index: 120;
+  display: flex; align-items: flex-end;
+  background: rgba(24, 36, 32, .42);
+  animation: hr-fade .16s ease-out;
+}
+@keyframes hr-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.hr-sheet {
+  width: 100%; max-height: 82vh; display: flex; flex-direction: column;
+  background: var(--card); color: var(--ink);
+  border-radius: var(--radius) var(--radius) 0 0;
+  box-shadow: var(--shadow-lg);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  animation: hr-rise .2s cubic-bezier(.2, .8, .3, 1);
+}
+@keyframes hr-rise { from { transform: translateY(14%); } to { transform: translateY(0); } }
+
+.hr-sheet-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 16px 16px 12px; border-bottom: 1px solid var(--line);
+}
+.hr-sheet-head strong { font-size: 15px; }
+.hr-sheet-body { padding: 16px; overflow-y: auto; flex: 1; }
+.hr-sheet-foot {
+  display: flex; gap: 10px; padding: 12px 16px 16px; border-top: 1px solid var(--line);
+}
+.hr-sheet-foot .btn { flex: 1; justify-content: center; min-height: 44px; }
+
+
+/* ═══ Loading ════════════════════════════════════════════════════════════
+
+   The shape of the answer, not a spinner. A spinner replaces the layout with a
+   dot and then throws it away; a skeleton leaves the columns where the figures
+   will land. */
+
+.hr-skel {
+  display: block; background: var(--line);
+  animation: hr-pulse 1.4s ease-in-out infinite;
+}
+@keyframes hr-pulse { 0%, 100% { opacity: .5; } 50% { opacity: .95; } }
+
+.hr-skel-row td { padding: 12px; border-bottom: 1px solid var(--line); }
+.hr-skel-row:last-child td { border-bottom: none; }
+
+
+/* ═══ Empty and broken ═══════════════════════════════════════════════════ */
+
+.hr-empty {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 40px 20px; text-align: center; color: var(--ink-soft);
+}
+.hr-empty-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; border-radius: 50%; margin-bottom: 2px;
+  background: var(--paper); color: var(--ink-soft);
+  border: 1px solid var(--line);
+}
+.hr-empty b { font-size: 14.5px; color: var(--ink); font-weight: 600; }
+.hr-empty > span { font-size: 12.5px; max-width: 46ch; line-height: 1.55; }
+.hr-empty .btn { margin-top: 6px; }
+
+/* Broken, not merely empty — different colour, and it announces itself. */
+.hr-empty.is-error .hr-empty-icon {
+  background: var(--clay-soft); border-color: var(--clay); color: var(--clay);
+}
+.hr-empty.is-error b { color: var(--clay); }
+
+
+/* ═══ Table — sorting, and a row you can open ═══════════════════════════ */
+
+.hr-th-sort {
+  display: inline-flex; align-items: center; gap: 5px;
+  border: none; background: none; padding: 0; cursor: pointer;
+  font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;
+  transition: color .12s ease;
+}
+.hr-th-sort:hover { color: var(--ink); }
+.hr-th-sort:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 3px; }
+
+.hr-sort-caret {
+  opacity: .3; transition: opacity .14s ease, transform .14s ease;
+}
+.hr-sort-caret.is-on { opacity: 1; color: var(--teal); }
+.hr-sort-caret.is-desc { transform: rotate(180deg); }
+
+.hr-table tbody tr.is-clickable { cursor: pointer; }
+.hr-table tbody tr.is-clickable:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+
+/* Figures line up, everywhere they appear — not only inside a .hr-num cell. */
+.hr-num-inline { font-variant-numeric: tabular-nums; }
+.hr-dash { color: var(--ink-soft); }
+
+
+/* ═══ Status ═════════════════════════════════════════════════════════════ */
+
+.hr-status { display: inline-flex; align-items: center; gap: 4px; }
+.hr-status svg { flex-shrink: 0; margin-top: -1px; }
+
+
+/* ═══ Payroll rail — the exception flag ═════════════════════════════════ */
+
+.hr-steps { list-style: none; margin: 0; padding: 0; }
+.hr-step.is-bad { color: var(--clay); }
+.hr-step.is-bad .hr-step-dot { background: var(--clay); box-shadow: 0 0 0 3px var(--clay-soft); }
+.hr-step-flag {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 17px; height: 17px; padding: 0 5px; margin-left: 2px;
+  border-radius: 999px; background: var(--clay); color: #fff;
+  font-size: 10px; font-weight: 800;
+}
+
+
+/* ═══ Stepper ════════════════════════════════════════════════════════════
+
+   The rail says where a payroll run is. This says where a *person* is inside a
+   form that runs in stages, which is a different job: the numbers matter, and a
+   step that failed has to be reachable. */
+
+.hr-stepper {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  margin: 0; padding: 0; list-style: none;
+}
+/* The step is itself a flex box so the tile inside fills the row's height:
+   a two-line "Review transactions" and a one-line "Expected cash" then sit
+   at the same height instead of a ragged row of tiles. */
+.hr-stepper-step { flex: 1 1 150px; min-width: 0; display: flex; }
+.hr-stepper-step > button,
+.hr-stepper-step > span {
+  display: flex; align-items: center; gap: 10px; width: 100%; flex: 1 1 auto;
+  padding: 10px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--line); background: var(--card);
+  text-align: left; font: inherit; color: var(--ink-soft);
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.hr-stepper-step > button { cursor: pointer; }
+.hr-stepper-step > button:hover { border-color: var(--ink-soft); }
+.hr-stepper-step > button:focus-visible {
+  outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-soft);
+}
+
+.hr-stepper-no {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%;
+  background: var(--paper); border: 1px solid var(--line);
+  font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-weight: 700;
+}
+.hr-stepper-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.hr-stepper-text b { font-size: 13px; font-weight: 600; }
+.hr-stepper-text em {
+  font-style: normal; font-size: 11px; color: var(--ink-soft);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.hr-stepper-step.is-done > *  { color: var(--ink); }
+.hr-stepper-step.is-done .hr-stepper-no { background: var(--sage-soft); border-color: var(--sage); color: var(--sage); }
+.hr-stepper-step.is-now > *   { color: var(--ink); border-color: var(--teal); background: var(--teal-soft); }
+.hr-stepper-step.is-now .hr-stepper-no { background: var(--teal); border-color: var(--teal); color: #fff; }
+.hr-stepper-step.is-bad > *   { color: var(--clay); border-color: var(--clay); }
+.hr-stepper-step.is-bad .hr-stepper-no { background: var(--clay-soft); border-color: var(--clay); color: var(--clay); }
+
+
+/* ═══ Timeline ═══════════════════════════════════════════════════════════ */
+
+.hr-timeline {
+  display: flex; flex-direction: column;
+  margin: 0; padding: 0; list-style: none;
+}
+.hr-tl-item {
+  position: relative; display: flex; gap: 12px;
+  padding: 0 0 16px 0;
+}
+.hr-tl-item:last-child { padding-bottom: 0; }
+
+/* The line runs between the dots, so the last item does not trail off. */
+.hr-tl-item:not(:last-child)::before {
+  content: ""; position: absolute;
+  left: 8px; top: 20px; bottom: 2px; width: 1px; background: var(--line);
+}
+
+.hr-tl-dot {
+  position: relative; z-index: 1; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 17px; height: 17px; margin-top: 2px; border-radius: 50%;
+  background: var(--card); border: 2px solid var(--line); color: var(--card);
+}
+.hr-tl-item.is-sage  .hr-tl-dot { border-color: var(--sage);  background: var(--sage);  color: #fff; }
+.hr-tl-item.is-teal  .hr-tl-dot { border-color: var(--teal);  background: var(--teal);  color: #fff; }
+.hr-tl-item.is-amber .hr-tl-dot { border-color: var(--amber); background: var(--amber); color: #fff; }
+.hr-tl-item.is-clay  .hr-tl-dot { border-color: var(--clay);  background: var(--clay);  color: #fff; }
+
+.hr-tl-body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.hr-tl-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+}
+.hr-tl-head b { font-size: 13.5px; font-weight: 600; }
+.hr-tl-when {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-soft);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.hr-tl-who { font-size: 12px; color: var(--ink-soft); }
+.hr-tl-note {
+  margin: 4px 0 0; padding: 7px 10px; border-radius: 7px;
+  background: var(--paper); border-left: 2px solid var(--line);
+  font-size: 12.5px; line-height: 1.5; color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.hr-timeline-empty { font-size: 12.5px; color: var(--ink-soft); margin: 0; }
+
+
+/* ═══ Drawer ═════════════════════════════════════════════════════════════
+
+   For reading one row without losing the list. A modal says "answer me"; a
+   drawer says "here is the detail, the list is still behind you". */
+
+.hr-drawer-backdrop {
+  position: fixed; inset: 0; z-index: 110;
+  display: flex; justify-content: flex-end;
+  background: rgba(24, 36, 32, .38);
+  animation: hr-fade .16s ease-out;
+}
+
+.hr-drawer {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  background: var(--card); color: var(--ink);
+  border-left: 1px solid var(--line);
+  box-shadow: var(--shadow-lg);
+  animation: hr-slide .2s cubic-bezier(.2, .8, .3, 1);
+}
+@keyframes hr-slide { from { transform: translateX(24px); opacity: .4; } to { transform: none; opacity: 1; } }
+.hr-drawer:focus { outline: none; }
+
+.hr-drawer-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding: 18px 20px 14px; border-bottom: 1px solid var(--line);
+}
+.hr-drawer-head h3 { margin: 0; font-size: 17px; letter-spacing: -.01em; }
+.hr-drawer-head p  { margin: 3px 0 0; font-size: 12.5px; color: var(--ink-soft); }
+
+.hr-drawer-body {
+  flex: 1; overflow-y: auto; padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.hr-drawer-foot {
+  display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;
+  padding: 14px 20px; border-top: 1px solid var(--line); background: var(--paper);
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+}
+
+/* A question asked from a drawer — Approve, Reject, "remove this receipt?" —
+   opens a modal, and the modal sits at z 100 while the drawer backdrop sits at
+   110. So it opened underneath and nothing in it could be clicked. While a
+   drawer is open, a modal goes above it; the receipt viewer (140) stays on top
+   of both. */
+body:has(.hr-drawer-backdrop) .modal-backdrop { z-index: 130; }
+
+
+/* ═══ Form sections ══════════════════════════════════════════════════════
+
+   An employee record is upward of thirty fields. Thirty inputs in one column is
+   a form nobody finishes; six sections of five is one somebody can put down
+   halfway and come back to. */
+
+.hr-fsec { display: flex; flex-direction: column; gap: 12px; }
+.hr-fsec + .hr-fsec { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+
+.hr-fsec-head { display: flex; align-items: flex-start; gap: 10px; }
+.hr-fsec-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; flex-shrink: 0; border-radius: 8px;
+  background: var(--teal-soft); color: var(--teal);
+}
+.hr-fsec-head h4 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -.01em; }
+.hr-fsec-head p  { margin: 2px 0 0; font-size: 12px; color: var(--ink-soft); line-height: 1.5; }
+
+.hr-form-1 { grid-template-columns: 1fr; }
+.hr-form-3 { grid-template-columns: repeat(3, 1fr); }
+
+/* An input that failed validation, and the line that says why. */
+.hr-form .is-invalid,
+.hr-filter .is-invalid { border-color: var(--clay); }
+.hr-form .is-invalid:focus { box-shadow: 0 0 0 3px var(--clay-soft); border-color: var(--clay); }
+.hr-field-error {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11.5px; color: var(--clay); margin-top: 4px;
+}
+
+
+/* ═══ Responsive ═════════════════════════════════════════════════════════ */
+
+@media (min-width: 768px) and (max-width: 1199.98px) {
+  .hr-form-3 { grid-template-columns: repeat(2, 1fr); }
+  .hr-stepper-step { flex: 1 1 130px; }
+  .hr-stepper-text em { display: none; }   /* the hint is the first thing to go */
+}
+
+@media (max-width: 767.98px) {
+  /* Touch targets. 44px is the floor everywhere something is tapped. */
+  .btn-icon-only { width: 40px; height: 40px; }
+  .btn-sm.btn-icon-only { width: 38px; height: 38px; }
+  .hr-search-input { min-height: 44px; }
+
+  /* The fields move into the sheet; the button that opens it takes their place. */
+  .hr-filterbar-fields, .hr-filterbar-tools { display: none; }
+  .hr-filterbar-open { display: flex; }
+  /* Inside the sheet they are fields again. */
+  .hr-sheet .hr-filterbar-fields { display: flex; }
+
+  .hr-form-3 { grid-template-columns: 1fr; }
+  .hr-stepper { flex-direction: column; }
+  .hr-stepper-step { flex: 1 1 auto; }
+
+  .hr-menu { right: 0; left: auto; min-width: 200px; }
+  .hr-menu-item { min-height: 44px; }
+
+  .hr-drawer {
+    max-width: none !important;         /* beats the desktop width prop */
+    border-left: none;
+    border-radius: var(--radius) var(--radius) 0 0;
+    margin-top: 8vh; height: 92%;
+  }
+  .hr-drawer-backdrop { align-items: flex-end; }
+  .hr-drawer-foot .btn { flex: 1; justify-content: center; min-height: 44px; }
+
+  .hr-empty { padding: 30px 16px; }
+}
+
+
+/* ═══ Print — the payslip and the reports ════════════════════════════════ */
+
+@media print {
+  .hr-tabs, .hr-filterbar, .hr-head-actions,
+  .hr-row-actions, .hr-drawer-backdrop, .hr-sheet-backdrop { display: none !important; }
+  .hr-page { padding: 0; }
+  .hr-table-wrap { overflow: visible; }
+  .hr-table tbody tr { break-inside: avoid; }
+}
+
+
+/* ═══ Motion ═════════════════════════════════════════════════════════════
+
+   Everything above animates for the same reason: to say that something moved,
+   in less time than it takes to notice it moving. Somebody who has asked their
+   system not to animate has said that is not true for them. */
+
+@media (prefers-reduced-motion: reduce) {
+  .hr-skel, .hr-spin,
+  .hr-menu, .hr-sheet, .hr-drawer, .hr-filters-adv,
+  .hr-sheet-backdrop, .hr-drawer-backdrop {
+    animation: none !important;
+  }
+  .hr-kpi.is-link, .hr-search-input, .hr-stepper-step > button,
+  .hr-menu-item, .hr-sort-caret, .hr-crumb li > button {
+    transition: none !important;
+  }
+  .hr-kpi.is-link:hover { transform: none; }
+}
+
+
+/* ═══ The printed payslip ════════════════════════════════════════════════
+
+   A payslip is the one thing in HR somebody hands to another person, so it
+   comes out of the printer as a document — the same A4 sheet as the sales
+   invoice, with the branch's letterhead — rather than as a screenshot of a
+   dialog. PayslipPrint.jsx draws it on the invoice's .pd-* classes; what is
+   below is only what a payslip has and an invoice does not.
+
+   The earlier approach printed the dialog itself and hid .app-shell behind
+   it; the dialog lived inside .app-shell, so the sheet came out blank. The
+   overlay is now rendered on <body>, outside the shell. */
+
+/* Earnings left, deductions right, a blank column between them. */
+.pd-slip-table tfoot td {
+  padding: 6px 6px; border-top: 1px solid #111; font-size: 10.5px; font-weight: 600; text-align: right;
+}
+/* The gap column carries no rule — the two halves stay two tables to the eye. */
+.pd-slip-table tbody td.pd-slip-gap, .pd-slip-table tfoot td.pd-slip-gap { border-top: none; border-bottom: none; }
+.pd-slip-gap { width: 8mm; border: none !important; background: none !important; }
+
+/* The foot: attendance on the left, the totals block on the right. */
+.pd-slip-foot { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+.pd-slip-att { flex: 1 1 auto; max-width: 84mm; }
+.pd-slip-att .pd-facts { margin-top: 2px; }
+.pd-slip-att .pd-facts dd { text-align: left; }
+.pd-slip-note { margin-top: 8px; font-size: 9.5px; color: #555; line-height: 1.45; }
+
+@media print {
+  /* The overlay is on <body>; everything else on the page goes. */
+  body:has(> .pd-portal) .app-shell { display: none !important; }
+  body:has(> .pd-portal) .modal-backdrop { display: none !important; }
+  .pd-slip-foot, .pd-slip-table tfoot { page-break-inside: avoid; }
+  .pd-slip-table tfoot { display: table-footer-group; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE REGISTER, AT SCALE
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Built for a branch of 2,500, which changes what the screen is: a paged list
+   with a search and a filter, a save bar that follows you, and a keyboard —
+   because a register that size is filled by somebody who never lifts their
+   hands from the keys. Everything below reads the same tokens as the rest of
+   HR; nothing declares a colour of its own. */
+
+
+/* ═══ Desktop tab strip ═══════════════════════════════════════════════════
+   The phone has a bottom bar (.hr-tabs). This is the same set of sections
+   drawn along the top on anything wider, so a page shows one section at a
+   time instead of six stacked. */
+
+.hr-tabbar {
+  display: flex; gap: 2px; flex-wrap: wrap;
+  padding: 4px; border-radius: 12px;
+  background: var(--paper-deep); border: 1px solid var(--line);
+}
+.hr-tabbar-tab {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 14px; border-radius: 9px; border: none;
+  background: none; color: var(--ink-soft);
+  font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  transition: background .14s ease, color .14s ease, box-shadow .14s ease;
+}
+.hr-tabbar-tab:hover { color: var(--ink); }
+.hr-tabbar-tab.is-on {
+  background: var(--card); color: var(--ink); box-shadow: var(--shadow);
+}
+.hr-tabbar-tab:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--teal-soft); }
+.hr-tabbar-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+  background: var(--clay); color: #fff;
+  font-size: 10.5px; font-weight: 800; font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+/* Below 768 the bottom bar takes over. */
+@media (max-width: 767.98px) { .hr-tabbar { display: none; } }
+
+
+/* ═══ Pagination ═════════════════════════════════════════════════════════ */
+
+.hr-pager {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.hr-pager-range { font-size: 12.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.hr-pager-controls { display: flex; align-items: center; gap: 6px; }
+.hr-pager-page {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-soft);
+  padding: 0 6px; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.hr-pager-size select {
+  padding: 5px 8px; border-radius: 7px; border: 1px solid var(--line);
+  background: var(--paper); color: var(--ink); font-size: 12px; min-height: 30px;
+}
+
+
+/* ═══ Progress ═══════════════════════════════════════════════════════════ */
+
+.hr-progress { display: flex; flex-direction: column; gap: 6px; }
+.hr-progress-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  font-size: 12.5px; color: var(--ink-soft);
+}
+.hr-progress-head b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.hr-progress-track {
+  height: 8px; border-radius: 999px; background: var(--paper-deep); overflow: hidden;
+}
+.hr-progress-fill {
+  height: 100%; border-radius: 999px; background: var(--teal);
+  transition: width .3s ease;
+}
+.hr-progress.is-sage .hr-progress-fill  { background: var(--sage); }
+.hr-progress.is-amber .hr-progress-fill { background: var(--amber); }
+
+
+/* ═══ Employee picker ════════════════════════════════════════════════════ */
+
+.hr-picker { position: relative; display: flex; align-items: center; min-width: 0; }
+.hr-picker-input {
+  width: 100%; min-height: 36px;
+  padding: 7px 32px 7px 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  font-size: 13px; font-family: inherit;
+  transition: border-color .14s ease, box-shadow .14s ease, background .14s ease;
+}
+.hr-picker > .hr-picker-avatar + .hr-picker-input { padding-left: 38px; }
+.hr-picker-input::placeholder { color: var(--ink-soft); }
+.hr-picker-input:hover:not(:disabled) { border-color: var(--ink-soft); }
+.hr-picker-input:focus {
+  outline: none; border-color: var(--amber); background: var(--card);
+  box-shadow: 0 0 0 3px var(--amber-soft);
+}
+.hr-picker.is-off .hr-picker-input { opacity: .6; cursor: not-allowed; }
+
+.hr-picker > .hr-picker-avatar { position: absolute; left: 8px; pointer-events: none; }
+.hr-picker-avatar {
+  width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center; overflow: hidden;
+  background: var(--paper-deep); border: 1px solid var(--line); color: var(--ink-soft);
+  font-size: 9.5px; font-weight: 700; letter-spacing: .02em;
+}
+.hr-picker-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.hr-picker-clear {
+  position: absolute; right: 6px;
+  display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 6px; border: none; background: none;
+  color: var(--ink-soft); cursor: pointer;
+}
+.hr-picker-clear:hover { background: var(--line); color: var(--ink); }
+
+.hr-picker-list {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 40;
+  max-height: 320px; overflow-y: auto; padding: 4px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); box-shadow: var(--shadow-lg);
+  animation: hr-pop .14s ease-out;
+}
+.hr-picker-row {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 7px 8px; border: none; border-radius: 7px; background: none;
+  color: var(--ink); text-align: left; cursor: pointer;
+}
+.hr-picker-row.is-hi, .hr-picker-row:hover { background: var(--paper); }
+.hr-picker-row.is-all { font-weight: 600; color: var(--ink-soft); }
+.hr-picker-text { display: flex; flex-direction: column; min-width: 0; }
+.hr-picker-name { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hr-picker-meta { font-size: 11px; color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace; }
+.hr-picker-note { padding: 12px 10px; font-size: 12.5px; color: var(--ink-soft); }
+
+
+/* ═══ The register's head: date, and the day at a glance ═════════════════ */
+
+.hr-reg-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+}
+
+/* Yesterday · [date] · tomorrow · Today. Arrows because a register is filled
+   for the day just gone as often as for today, and a date picker is three
+   clicks to move one day. */
+.hr-datenav { display: flex; align-items: center; gap: 6px; }
+.hr-datenav input[type="date"] {
+  min-height: 36px; padding: 6px 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.hr-datenav input[type="date"]:focus {
+  outline: none; border-color: var(--amber); box-shadow: 0 0 0 3px var(--amber-soft);
+}
+.hr-datenav-day { font-size: 12.5px; color: var(--ink-soft); margin-left: 4px; white-space: nowrap; }
+
+/* Shares the row with the date on a desktop. Stacked on a phone the same
+   flex-basis would grow it *downwards* and open a hole under the bar — the
+   column rule below sets it back to its content height. */
+.hr-reg-progress { flex: 1 1 320px; max-width: 520px; }
+
+/* Tiles that are filters. The one that is on carries the same ring the
+   register's own controls do, so "this is what you are looking at" is said
+   once, the same way, everywhere. */
+.hr-kpi.is-active {
+  border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-soft);
+}
+
+
+/* ═══ The toolbar ════════════════════════════════════════════════════════ */
+
+.hr-reg-tools {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.hr-reg-tools .hr-search { flex: 1 1 260px; max-width: 420px; }
+.hr-reg-tools select {
+  min-height: 36px; padding: 7px 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 13px;
+}
+.hr-reg-tools .hr-spacer { flex: 1; }
+
+/* The filter word that is on, as a chip with an × — a filter you cannot see
+   is a filter you forget you set. */
+.hr-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 6px 4px 10px; border-radius: 999px;
+  background: var(--teal-soft); color: var(--teal);
+  font-size: 12px; font-weight: 700;
+}
+.hr-chip button {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 50%; border: none;
+  background: none; color: inherit; cursor: pointer;
+}
+.hr-chip button:hover { background: rgba(0,0,0,.08); }
+
+
+/* ═══ The rows ═══════════════════════════════════════════════════════════ */
+
+/* Name and code on two lines beside the photograph — a register is read by
+   name, and the code is for the two Rahims. */
+.hr-reg-who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.hr-reg-who-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.hr-reg-who-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hr-reg-who-meta {
+  font-size: 11px; color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* The row with the keyboard on it. */
+.hr-table tbody tr.is-cursor { background: var(--teal-soft); }
+.hr-table tbody tr.is-cursor td:first-child { box-shadow: inset 3px 0 0 var(--teal); }
+
+/* A mark made but not yet saved: the row says so, because "did I save that"
+   is the question at 2,400 of 2,500. */
+.hr-table tbody tr.is-dirty td:first-child { box-shadow: inset 3px 0 0 var(--amber); }
+.hr-table tbody tr.is-dirty.is-cursor td:first-child {
+  box-shadow: inset 3px 0 0 var(--teal), inset 6px 0 0 var(--amber);
+}
+
+/* A row that says what it says and cannot be marked here. */
+.hr-reg-locked {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; color: var(--ink-soft);
+}
+
+/* The mark buttons, which already exist as .hr-mark. On this register they
+   are a touch wider: the letter is the whole control and a 32px target under
+   a thumb is a mis-mark. */
+.hr-reg .hr-mark button { min-width: 34px; }
+.hr-reg .hr-mark button.is-on.mark-PRESENT  { background: var(--sage);  border-color: var(--sage); }
+.hr-reg .hr-mark button.is-on.mark-ABSENT   { background: var(--clay);  border-color: var(--clay); }
+.hr-reg .hr-mark button.is-on.mark-LATE     { background: var(--amber); border-color: var(--amber); }
+.hr-reg .hr-mark button.is-on.mark-HALF_DAY { background: var(--teal);  border-color: var(--teal); }
+
+
+/* ═══ The save bar ═══════════════════════════════════════════════════════
+   Follows the page. Marks are made across pages and the count includes all
+   of them, so somebody three pages in is never asked to go back to find the
+   Save button. */
+
+.hr-savebar {
+  position: sticky; bottom: 12px; z-index: 30;
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  padding: 12px 16px; border-radius: 12px;
+  background: var(--card); border: 1px solid var(--amber);
+  box-shadow: var(--shadow-lg);
+  animation: hr-rise-in .18s ease-out;
+}
+@keyframes hr-rise-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.hr-savebar-text { font-size: 13.5px; }
+.hr-savebar-text b { font-variant-numeric: tabular-nums; }
+.hr-savebar-text small { display: block; font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
+.hr-savebar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* The keyboard legend: shown, not hidden in a tooltip, because the point of
+   the keys is that nobody has to discover them. */
+.hr-keys {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  font-size: 11.5px; color: var(--ink-soft);
+}
+.hr-keys kbd {
+  display: inline-block; min-width: 18px; padding: 1px 5px; border-radius: 4px;
+  border: 1px solid var(--line); border-bottom-width: 2px; background: var(--paper);
+  font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--ink);
+  text-align: center;
+}
+
+
+/* ═══ History summary chips ══════════════════════════════════════════════ */
+
+.hr-sumchips { display: flex; gap: 8px; flex-wrap: wrap; }
+.hr-sumchip {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  padding: 6px 11px; border-radius: 9px;
+  background: var(--paper); border: 1px solid var(--line);
+  font-size: 12.5px; color: var(--ink-soft);
+}
+.hr-sumchip b { font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+
+/* ═══ Responsive ═════════════════════════════════════════════════════════ */
+
+@media (max-width: 767.98px) {
+  .hr-reg-head { flex-direction: column; align-items: stretch; }
+  .hr-reg-progress { flex: 0 0 auto; max-width: none; }
+  .hr-datenav { justify-content: space-between; }
+  .hr-datenav input[type="date"] { flex: 1; min-height: 42px; }
+  .hr-reg-tools .hr-search { max-width: none; }
+  .hr-reg-tools select { flex: 1 1 140px; min-height: 42px; }
+  .hr-keys { display: none; }   /* no keyboard on a phone */
+  .hr-savebar {
+    /* Above the bottom tab bar, not under it. */
+    bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+    flex-direction: column; align-items: stretch;
+  }
+  .hr-savebar-actions .btn { flex: 1; justify-content: center; }
+  .hr-pager { flex-direction: column; align-items: stretch; }
+  .hr-pager-controls { justify-content: space-between; flex-wrap: wrap; }
+  /* First and last are a luxury on 390px: five 38px targets plus the page
+     count plus the size select ran 2px past the card. Previous and next are
+     what a thumb uses. */
+  .hr-pager-controls .btn[title="First page"],
+  .hr-pager-controls .btn[title="Last page"] { display: none; }
+  .hr-picker-input { min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hr-savebar, .hr-picker-list { animation: none; }
+  .hr-progress-fill, .hr-tabbar-tab { transition: none; }
+}
+
+
+/* ═══ Editable lines inside a form ═══════════════════════════════════════
+
+   The expenses on a claim, the signatures on a chain, the components of a
+   structure. A table with one control per cell: the heading names the column
+   once, the cells line up under it, and every row has its number on the left
+   and its remove control on the right. */
+
+.hr-lines { display: flex; flex-direction: column; gap: 8px; }
+.hr-lines-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: auto; }
+.hr-lines-table thead th {
+  text-align: left; padding: 0 6px 6px; font-size: 10.5px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft);
+  white-space: nowrap;
+}
+.hr-lines-table thead th.hr-lines-num, .hr-lines-table td.hr-lines-num { text-align: right; }
+.hr-lines-table tbody td { padding: 3px 4px; vertical-align: middle; }
+.hr-lines-table tbody tr + tr td { border-top: 1px dashed var(--line); padding-top: 6px; }
+.hr-lines-table tbody tr td { padding-bottom: 3px; }
+.hr-lines-n { width: 28px; color: var(--ink-soft); font-size: 12px; font-variant-numeric: tabular-nums; text-align: center; }
+.hr-lines-x { width: 40px; text-align: right; }
+.hr-lines-x .btn { color: var(--ink-soft); }
+.hr-lines-x .btn:hover { color: var(--clay); }
+
+/* The controls: the same shape as every other field in a modal, one size
+   smaller, because there are five of them in a row. */
+.hr-lines-table input, .hr-lines-table select, .hr-lines-table textarea {
+  width: 100%; min-width: 0; padding: 7px 9px; min-height: 36px;
+  border-radius: 8px; border: 1px solid var(--line);
+  background: var(--paper); color: var(--ink); font-size: 13px; font-family: inherit;
+}
+.hr-lines-table input[type="number"], .hr-lines-table td.hr-lines-num input { text-align: right; font-variant-numeric: tabular-nums; }
+.hr-lines-table input:focus, .hr-lines-table select:focus, .hr-lines-table textarea:focus {
+  outline: none; border-color: var(--amber); background: var(--card); box-shadow: 0 0 0 3px var(--amber-soft);
+}
+.hr-lines-table input::placeholder { color: var(--ink-soft); opacity: .8; }
+.hr-lines-table input[readonly] { background: transparent; border-color: transparent; padding-left: 0; }
+/* A cell that is a value rather than a control — the kind and date of a line
+   being approved, say — sits on the same baseline as its neighbours' inputs. */
+.hr-lines-static { display: block; padding: 7px 9px; min-height: 36px; font-size: 13px; line-height: 20px; }
+.hr-lines-check { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; white-space: nowrap; min-height: 36px; }
+.hr-lines-check input { width: 15px; min-height: 0; margin: 0; }
+
+.hr-lines-empty td { padding: 14px 6px; text-align: center; color: var(--ink-soft); font-size: 13px; }
+
+.hr-lines-table tfoot td {
+  padding: 10px 6px 0; border-top: 1px solid var(--line);
+  font-size: 13px; font-variant-numeric: tabular-nums;
+}
+.hr-lines-foot-label { text-align: right; color: var(--ink-soft); }
+.hr-lines-foot-value { font-weight: 700; white-space: nowrap; }
+.hr-lines-table tfoot tr + tr td { border-top: none; padding-top: 4px; }
+
+.hr-lines-add { display: flex; }
+
+/* The heading over the lines, with a count. */
+.hr-lines-head { display: flex; align-items: baseline; justify-content: space-between; margin: 18px 0 8px; gap: 12px; }
+.hr-lines-head h4 { margin: 0; font-size: 13.5px; }
+.hr-lines-head p { margin: 0; font-size: 12px; color: var(--ink-soft); }
+
+@media (max-width: 767.98px) {
+  /* Each row becomes a card; each cell wears its heading. */
+  .hr-lines-table thead { display: none; }
+  .hr-lines-table, .hr-lines-table tbody, .hr-lines-table tfoot { display: block; }
+  .hr-lines-table tbody tr {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px;
+    padding: 12px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+    background: var(--card); margin-bottom: 8px; position: relative;
+  }
+  .hr-lines-table tbody tr + tr td { border-top: none; padding-top: 0; }
+  .hr-lines-table tbody td { display: block; padding: 0; }
+  .hr-lines-table tbody td::before {
+    content: attr(data-label); display: block; margin-bottom: 4px;
+    font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft);
+  }
+  .hr-lines-table tbody td.hr-lines-n { position: absolute; top: 8px; left: 12px; width: auto; }
+  .hr-lines-table tbody td.hr-lines-n::before { display: none; }
+  .hr-lines-table tbody td.hr-lines-x { position: absolute; top: 4px; right: 6px; width: auto; }
+  .hr-lines-table tbody td.hr-lines-x::before { display: none; }
+  /* Every cell on its own row, full width; the first sits under the number. */
+  .hr-lines-table tbody td { grid-column: 1 / -1; }
+  .hr-lines-table tbody tr > td:first-child + td, .hr-lines-table tbody tr > td.hr-lines-n + td { padding-top: 18px; }
+  .hr-lines-head { flex-direction: column; gap: 2px; }
+  .hr-lines-table tbody td.hr-lines-num { text-align: left; }
+  .hr-lines-table tfoot tr { display: flex; justify-content: space-between; gap: 12px; }
+  .hr-lines-table tfoot td { display: block; }
+  .hr-lines-table tfoot td.hr-lines-x { display: none; }
+}
+
+/* ═══ Modal furniture: summary, compact note, validation, chain preview ═══ */
+
+/* A totals panel, right-aligned, in the shape of the invoice's: label left,
+   figure right, the figure that matters drawn heavier and ruled off. */
+.hr-summary { display: flex; justify-content: flex-end; margin-top: 12px; }
+.hr-summary-box {
+  min-width: 260px; padding: 10px 14px; border-radius: var(--radius-sm);
+  background: var(--paper); border: 1px solid var(--line);
+}
+.hr-summary-row {
+  display: flex; justify-content: space-between; gap: 18px; padding: 4px 0;
+  font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums;
+}
+.hr-summary-row b { color: var(--ink); font-weight: 600; }
+.hr-summary-row.is-grand {
+  margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--line);
+  color: var(--ink); font-weight: 700; font-size: 14.5px;
+}
+.hr-summary-row.is-grand b { font-size: 16px; }
+
+/* A one-line note with an icon, for the modals: the long dashed note is for
+   pages, where there is room to read. */
+.hr-form-note {
+  display: flex; gap: 8px; align-items: flex-start; margin-top: 14px;
+  font-size: 12px; line-height: 1.5; color: var(--ink-soft);
+}
+.hr-form-note svg { flex: 0 0 auto; margin-top: 2px; color: var(--amber-deep); }
+
+/* Something the server would refuse, said before the button is pressed. */
+.hr-lines-problem {
+  display: flex; gap: 8px; align-items: flex-start; margin-top: 8px;
+  font-size: 12.5px; color: var(--clay); line-height: 1.45;
+}
+.hr-lines-problem svg { flex: 0 0 auto; margin-top: 2px; }
+.hr-lines-table input.is-invalid, .hr-lines-table select.is-invalid {
+  border-color: var(--clay); background: var(--clay-soft);
+}
+
+/* The footer's running total — what the buttons are about to submit. */
+.hr-foot-status { margin-right: auto; align-self: center; font-size: 12.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.hr-foot-status b { color: var(--ink); font-weight: 600; }
+
+/* The chain, as it will run: numbered chips joined by arrows. */
+.hr-chain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
+.hr-chain-step {
+  display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px 5px 6px;
+  border-radius: 999px; border: 1px solid var(--line); background: var(--paper); font-size: 12.5px;
+}
+.hr-chain-step i {
+  display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--amber); color: #fff; font-style: normal; font-size: 10.5px; font-weight: 700;
+}
+.hr-chain-step.is-dup { border-color: var(--clay); background: var(--clay-soft); }
+.hr-chain-arrow { color: var(--ink-soft); display: inline-flex; }
+.hr-chain-end { font-size: 12px; color: var(--ink-soft); }
+
+@media (max-width: 767.98px) {
+  .hr-summary-box { min-width: 0; width: 100%; }
+  .hr-foot-status { width: 100%; margin: 0 0 6px; }
+}
+
+
+/* ═══ The employee entry form ═══════════════════════════════════════════
+
+   One record in four steps. The photograph block is a drop zone with the
+   preview beside its words; the review is the record read back, section by
+   section, each with its own Edit. */
+
+.hr-photo {
+  display: flex; align-items: center; gap: 16px; padding: 14px;
+  border: 1px dashed var(--line); border-radius: var(--radius-sm); background: var(--paper);
+  transition: border-color .18s ease, background .18s ease;
+}
+.hr-photo.is-over { border-color: var(--amber); background: var(--amber-soft); }
+.hr-photo-frame {
+  flex: 0 0 auto; width: 88px; height: 88px; border-radius: 14px; overflow: hidden;
+  background: var(--card); border: 1px solid var(--line); display: grid; place-items: center;
+}
+.hr-photo-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hr-photo-frame.is-small { width: 56px; height: 56px; border-radius: 10px; }
+.hr-photo-text { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.hr-photo-text b { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hr-photo-text span { font-size: 12px; color: var(--ink-soft); }
+.hr-photo-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+
+.hr-review { display: flex; flex-direction: column; gap: 14px; }
+.hr-review-id { display: flex; align-items: center; gap: 14px; }
+.hr-review-id b { display: block; font-size: 16px; }
+.hr-review-id span { font-size: 12.5px; color: var(--ink-soft); }
+.hr-review-block { padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card); }
+.hr-review-block > header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.hr-review-block h4 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+.hr-review-go { background: none; border: none; padding: 0 0 0 6px; font: inherit; font-weight: 600; color: var(--clay); text-decoration: underline; cursor: pointer; }
+
+@media (max-width: 767.98px) {
+  .hr-photo { flex-direction: column; align-items: flex-start; }
+}
+
+/* ═══ Receipts on an expense claim ═══════════════════════════════════════
+
+   The receipt is shown as a picture wherever it appears — the thumbnail on a
+   line, the card in the gallery — and both open the viewer. Cards double as
+   drop targets while the claim is a draft. See ReceiptKit.jsx. */
+
+.hr-receipt-thumb {
+  display: inline-grid; place-items: center; padding: 0; overflow: hidden; cursor: zoom-in;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--paper-deep);
+  color: var(--ink-soft); box-shadow: 0 1px 2px rgba(24,36,32,.06);
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.hr-receipt-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hr-receipt-thumb:hover { transform: scale(1.06); border-color: var(--teal); box-shadow: 0 4px 12px -4px rgba(24,36,32,.3); }
+.hr-receipt-thumb:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--teal-soft); }
+.hr-receipt-thumb.is-broken { cursor: default; color: var(--clay); }
+
+.hr-receipt-cell { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; }
+.hr-receipt-tools { display: inline-flex; gap: 2px; opacity: 0; transition: opacity .15s ease; }
+tr:hover .hr-receipt-tools, .hr-receipt-cell:focus-within .hr-receipt-tools { opacity: 1; }
+.hr-receipt-cell.is-busy { opacity: .6; }
+.hr-receipt-none { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--ink-soft); }
+
+.hr-receipt-pick { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; max-width: 100%; border-radius: 8px; transition: box-shadow .15s ease; }
+.hr-receipt-pick.is-over { box-shadow: 0 0 0 3px var(--amber-soft); }
+.hr-receipt-pick.is-invalid .hr-receipt-thumb { border-color: var(--clay); }
+.hr-receipt-pick-name { flex: 1 1 auto; min-width: 0; max-width: 120px; font-size: 12px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── The gallery ── */
+.hr-receipts { display: flex; flex-direction: column; gap: 12px; }
+.hr-receipts-head { display: flex; flex-direction: column; gap: 8px; }
+.hr-receipts-head > div:first-child { display: flex; align-items: baseline; gap: 10px; }
+.hr-receipts-head strong { font-size: 14px; }
+.hr-receipts-count { font-size: 12.5px; color: var(--ink-soft); }
+.hr-receipts-meter { height: 4px; border-radius: 999px; background: var(--paper-deep); overflow: hidden; }
+.hr-receipts-meter i { display: block; height: 100%; background: var(--teal); border-radius: inherit; transition: width .3s ease; }
+
+.hr-receipts-grid {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+.hr-receipt-card {
+  position: relative; margin: 0; display: flex; flex-direction: column;
+  border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card); overflow: hidden;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.hr-receipt-card.has-receipt:hover { border-color: var(--teal); box-shadow: var(--shadow); transform: translateY(-1px); }
+.hr-receipt-card.is-over { border-color: var(--amber); box-shadow: 0 0 0 3px var(--amber-soft); }
+.hr-receipt-card.is-over .hr-receipt-pic.is-empty { background: var(--amber-soft); border-color: var(--amber); color: var(--amber-deep); }
+.hr-receipt-card.is-busy { pointer-events: none; }
+
+.hr-receipt-pic {
+  position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 4 / 3;
+  margin: 0; padding: 0; border: none; background: var(--paper-deep); color: var(--ink-soft);
+  font: inherit; cursor: zoom-in; overflow: hidden;
+}
+.hr-receipt-pic img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .25s ease; }
+.hr-receipt-card.has-receipt:hover .hr-receipt-pic img { transform: scale(1.04); }
+.hr-receipt-pic.is-empty {
+  cursor: pointer; background: var(--paper); border-bottom: 1px dashed var(--line);
+  transition: background .18s ease, color .18s ease;
+}
+.hr-receipt-pic.is-empty:hover { background: var(--teal-soft); color: var(--teal); }
+.hr-receipt-pic.is-static { cursor: default; }
+.hr-receipt-pic.is-static:hover { background: var(--paper); color: var(--ink-soft); }
+.hr-receipt-pic:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--teal-soft); }
+.hr-receipt-placeholder { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; }
+.hr-receipt-zoom {
+  position: absolute; right: 8px; bottom: 8px; display: grid; place-items: center;
+  width: 26px; height: 26px; border-radius: 8px; background: rgba(24,36,32,.62); color: #fff;
+  opacity: 0; transition: opacity .15s ease;
+}
+.hr-receipt-card.has-receipt:hover .hr-receipt-zoom, .hr-receipt-pic:focus-visible .hr-receipt-zoom { opacity: 1; }
+
+.hr-receipt-card figcaption { display: flex; flex-direction: column; gap: 3px; padding: 9px 10px 10px; }
+.hr-receipt-kind { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hr-receipt-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-soft); }
+.hr-receipt-meta b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.hr-receipt-cardtools { display: flex; justify-content: space-between; align-items: center; gap: 4px; margin-top: 4px; }
+.hr-receipt-busy {
+  position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--teal); transform-origin: left;
+  animation: hr-receipt-busy 1.1s ease-in-out infinite;
+}
+@keyframes hr-receipt-busy { 0% { transform: scaleX(0); } 60% { transform: scaleX(1); transform-origin: left; } 100% { transform: scaleX(0); transform-origin: right; } }
+.hr-receipts-hint { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; color: var(--ink-soft); }
+
+/* ── The viewer ── */
+.hr-viewer {
+  position: fixed; inset: 0; z-index: 140; display: flex; flex-direction: column;
+  background: rgba(24,36,32,.9); color: #fff; animation: hr-fade .16s ease-out;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.hr-viewer-top {
+  display: flex; align-items: center; gap: 18px; padding: 14px 18px;
+  background: linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,0));
+}
+.hr-viewer-title { flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.hr-viewer-n { font-size: 12px; font-weight: 700; letter-spacing: .06em; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.14); }
+.hr-viewer-title strong { font-size: 15px; }
+.hr-viewer-meta { font-size: 12.5px; color: rgba(255,255,255,.72); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hr-viewer-amount { display: flex; align-items: baseline; gap: 6px; font-size: 12px; color: rgba(255,255,255,.72); white-space: nowrap; }
+.hr-viewer-amount b { font-size: 15px; color: #fff; font-variant-numeric: tabular-nums; margin-right: 8px; }
+.hr-viewer-tools { display: flex; gap: 6px; }
+.hr-viewer-btn {
+  display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; border: none;
+  background: rgba(255,255,255,.12); color: #fff; cursor: pointer; transition: background .15s ease;
+}
+.hr-viewer-btn:hover:not(:disabled) { background: rgba(255,255,255,.24); }
+.hr-viewer-btn:disabled { opacity: .4; cursor: default; }
+.hr-viewer-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+.hr-viewer-stage {
+  position: relative; flex: 1 1 auto; min-height: 0; display: grid; place-items: center;
+  padding: 8px 72px 16px; overflow: auto; outline: none;
+}
+.hr-viewer-stage img {
+  max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 6px; cursor: zoom-in;
+  box-shadow: 0 24px 60px -20px rgba(0,0,0,.7); opacity: 0; transform: scale(.98);
+  transition: opacity .2s ease, transform .2s ease; user-select: none;
+}
+.hr-viewer-stage img.is-ready { opacity: 1; transform: none; }
+.hr-viewer-stage.is-zoomed { place-items: start center; }
+.hr-viewer-stage.is-zoomed img { max-width: none; max-height: none; cursor: zoom-out; }
+.hr-viewer-loading { position: absolute; font-size: 13px; color: rgba(255,255,255,.7); }
+.hr-viewer-failed { display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 360px; text-align: center; color: rgba(255,255,255,.8); }
+.hr-viewer-failed strong { color: #fff; font-size: 15px; }
+.hr-viewer-failed span { font-size: 13px; }
+
+.hr-viewer-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); display: grid; place-items: center;
+  width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer;
+  background: rgba(255,255,255,.14); color: #fff; transition: background .15s ease;
+}
+.hr-viewer-nav:hover { background: rgba(255,255,255,.28); }
+.hr-viewer-nav.is-prev { left: 14px; }
+.hr-viewer-nav.is-next { right: 14px; }
+.hr-viewer-strip { display: flex; justify-content: center; gap: 8px; padding: 10px 18px 16px; overflow-x: auto; }
+.hr-viewer-dot {
+  flex: 0 0 auto; width: 52px; height: 40px; padding: 0; overflow: hidden; border-radius: 8px; cursor: pointer;
+  border: 2px solid transparent; background: rgba(255,255,255,.1); opacity: .55; transition: opacity .15s ease, border-color .15s ease;
+}
+.hr-viewer-dot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hr-viewer-dot:hover, .hr-viewer-dot.is-on { opacity: 1; }
+.hr-viewer-dot.is-on { border-color: #fff; }
+
+@media (max-width: 767.98px) {
+  .hr-receipts-grid { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); }
+  .hr-viewer-top { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
+  .hr-viewer-amount { order: 3; width: 100%; }
+  .hr-viewer-stage { padding: 4px 8px 12px; }
+  .hr-viewer-nav { width: 40px; height: 40px; top: auto; bottom: 74px; transform: none; }
+  .hr-receipt-tools { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hr-receipt-thumb, .hr-receipt-card, .hr-receipt-pic img, .hr-viewer, .hr-viewer-stage img, .hr-receipts-meter i { transition: none; animation: none; }
+  .hr-receipt-busy { animation: none; transform: none; }
+}

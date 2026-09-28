@@ -1,0 +1,44 @@
+# ── Node / frontend ──
+node_modules
+dist
+.DS_Store
+
+# ── Java / backend build output ──
+backend/target/
+target/
+*.class
+*.jar
+*.war
+
+# Build logs captured during troubleshooting — not sources
+backend/build-output.txt
+backend/compile.log
+
+# ── Environment variables ──
+.env
+.env.local
+
+# Vite mode files are TRACKED on purpose. Everything in them is VITE_*, which
+# is inlined into the public JavaScript at build time — none of it can be a
+# secret, and keeping them in the repo is what makes a production build
+# reproducible on any machine instead of depending on one laptop.
+!.env.development
+!.env.production
+
+# ── IDE ──
+.idea
+backend/.idea
+.vscode
+*.iml
+*.swp
+*.swo
+
+# ── Logs ──
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Oracle APEX export (11MB, duplicated in the parent repo under APPS/) ──
+f110.sql

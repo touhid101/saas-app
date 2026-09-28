@@ -1,0 +1,273 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   PURCHASE — responsive
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Same approach as quicksales-responsive.css, and the same breakpoints, so the
+   two entry screens behave alike on a given device:
+
+       >= 1200   the invoice table, all eleven columns
+       768–1199  the table, with the columns that are advisory rather than
+                 entered given up first
+       < 768     one card per line — the eleven columns cannot be read at that
+                 width and a horizontal scrollbar hides Total and Remove, which
+                 are the two a buyer checks
+
+   Nothing about the page's behaviour changes: the same handlers, the same keys,
+   the same keyboard chain. Only how much of each line is on screen at once.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ═══ The central TP control ══════════════════════════════════════════════ */
+
+.pu-lines-head-right {
+  display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.pu-bulk-tp { display: flex; flex-direction: column; gap: 4px; }
+.pu-bulk-tp > label {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ink-soft); white-space: nowrap;
+}
+.pu-bulk-tp-controls { display: flex; align-items: stretch; gap: 6px; }
+.pu-bulk-tp-controls input {
+  width: 76px; padding: 6px 10px; text-align: right;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--paper); color: var(--ink); font-size: 13px;
+  transition: border-color .14s ease, box-shadow .14s ease;
+}
+.pu-bulk-tp-controls input:hover { border-color: var(--ink-soft); }
+.pu-bulk-tp-controls input:focus {
+  outline: none; border-color: var(--amber); background: var(--card);
+  box-shadow: 0 0 0 3px var(--amber-soft);
+}
+.pu-bulk-tp-controls .btn { white-space: nowrap; }
+
+
+/* ═══ The invoice table ═══════════════════════════════════════════════════
+
+   The table is the page's widest element by far. It keeps its own scroll
+   container so the *page* never scrolls sideways — a horizontal scrollbar on
+   the document moves the header and the totals as well, and then nothing on
+   screen is where it was. */
+
+.pu-lines-wrap { overflow-x: auto; overflow-y: visible; }
+.pu-lines-wrap > table { min-width: 880px; }
+
+
+/* ═══ 768–1199: give up what is advisory ══════════════════════════════════
+
+   Flat discount and the bonus column are the least-entered of the numeric
+   columns and both are reachable on a wider screen or by opening the line on
+   one. Quantity, unit, TP%, discount and total stay, because those are what a
+   buyer is reading off the paper invoice. */
+
+@media (min-width: 768px) and (max-width: 1199.98px) {
+  .pu-lines-wrap > table { min-width: 0; }
+  .pu-head-grid { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+  /* Wrapped under the title rather than beside it, so it needs its own air —
+     without this the label butts against the formula note above and the two
+     read as one run-on line. */
+  .pu-lines-head-right { justify-content: flex-start; width: 100%; margin-top: 12px; }
+}
+
+
+/* ═══ < 768: one card per line ════════════════════════════════════════════
+
+   Each row becomes a card: the product name leads, then the entered fields as
+   labelled pairs. The header names travel in as data-label, so there is one
+   set of markup and no second table to keep in step. */
+
+@media (max-width: 767.98px) {
+
+  .pu-lines-wrap { overflow-x: visible; }
+  .pu-lines-wrap > table { min-width: 0; }
+
+  .pu-lines-table thead { display: none; }
+  .pu-lines-table,
+  .pu-lines-table tbody,
+  .pu-lines-table tr,
+  .pu-lines-table td { display: block; width: auto; }
+
+  /* A grid, not a stack: the entered fields pair up two to a row so a line is
+     read in three glances rather than seven. Product, total and remove span
+     both columns, because each is a statement about the whole line. */
+  .pu-lines-table tbody tr {
+    display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; row-gap: 2px;
+    border: 1px solid var(--line); border-radius: var(--radius-sm);
+    padding: 12px 14px; margin-bottom: 10px; background: var(--card);
+  }
+  .pu-lines-table tbody tr:last-child { margin-bottom: 0; }
+
+  /* Label beside the box, not above it. Stacking them made each cell half as
+     tall again, which gave back most of what pairing the columns saved — and
+     the labels here are short enough (QTY, TP %, FLAT) to sit alongside a
+     right-aligned field at 143px. */
+  .pu-lines-table tbody td {
+    border: none; padding: 4px 0; min-width: 0;
+    display: flex; flex-direction: row; align-items: center;
+    justify-content: space-between; gap: 8px; text-align: right;
+  }
+  .pu-lines-table tbody td::before {
+    content: attr(data-label); flex-shrink: 0; text-align: left;
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink-soft); font-weight: 700;
+  }
+
+  /* The product leads the card as its heading rather than sitting in a
+     labelled row — on a card the first line reads as the title whether or not
+     it is marked as one. */
+  .pu-lines-table tbody td.pu-td-product {
+    grid-column: 1 / -1; display: block; text-align: left; margin-bottom: 6px;
+    padding-bottom: 8px; border-bottom: 1px dashed var(--line);
+  }
+  .pu-lines-table tbody td.pu-td-product::before { display: none; }
+
+  /* Inputs take the right-hand half rather than the full width: the label has
+     to stay readable beside them, and a full-width box for a two-digit
+     percentage is a lot of nothing. */
+  .pu-lines-table tbody td input,
+  .pu-lines-table tbody td select { flex: 1; min-width: 0; width: auto;
+                                    min-height: 36px; text-align: right; }
+  .pu-lines-table tbody td select { text-align: left; }
+
+  /* The total goes back to a label-beside-value row: it is read, not typed. */
+  .pu-lines-table tbody td.pu-td-total {
+    grid-column: 1 / -1; flex-direction: row; align-items: center;
+    justify-content: space-between; text-align: right;
+    border-top: 1px dashed var(--line); margin-top: 8px; padding-top: 10px;
+    font-size: 15px;
+  }
+  .pu-lines-table tbody td.pu-td-total::before { font-size: 11px; }
+
+  /* Remove is a full-width action at the foot of the card, not a 36px icon
+     wedged against the edge of a phone screen. */
+  .pu-lines-table tbody td.pu-td-remove { grid-column: 1 / -1; display: block; margin-top: 10px; }
+  .pu-lines-table tbody td.pu-td-remove::before { display: none; }
+  .pu-lines-table tbody td.pu-td-remove .icon-btn {
+    width: 100%; height: 38px; border-radius: 8px; gap: 7px;
+    color: var(--clay); border-color: var(--line);
+  }
+  .pu-lines-table tbody td.pu-td-remove .icon-btn::after {
+    content: "Remove line"; font-size: 12.5px; font-weight: 600;
+  }
+
+  /* The central TP control spans the card head rather than sitting beside a
+     title it would otherwise wrap under. */
+  .pu-lines-head-right { width: 100%; justify-content: flex-start; margin-top: 12px; }
+  .pu-bulk-tp { width: 100%; }
+  .pu-bulk-tp-controls { width: 100%; }
+  .pu-bulk-tp-controls input { flex: 1; width: auto; min-height: 40px; }
+
+  /* One field per line in the invoice header. Two 170px columns on a 360px
+     screen leaves each label clipped mid-word. */
+  .pu-head-grid { grid-template-columns: 1fr; }
+
+  /* Totals and the action stack: full width, thumb-sized, in reading order. */
+  .pu-actions { flex-direction: column; }
+  .pu-actions .btn { width: 100%; min-height: 44px; }
+}
+
+
+/* ═══ Very narrow ═════════════════════════════════════════════════════════ */
+
+@media (max-width: 400px) {
+  .pu-lines-table tbody tr { padding: 10px 11px; column-gap: 9px; }
+}
+
+
+/* ═══ The bottom bar — mobile and tablet ══════════════════════════════════
+
+   Replicated from QuickSales rather than designed again: same 48px targets,
+   same 11px label under an 18px icon, same teal active colour with a 2.5px bar
+   along the top edge so the selection survives a colour-blind reading, same
+   safe-area padding, same z-index band. A buyer moving between the till and
+   purchasing should not have to learn two bottom bars.
+
+   One deliberate difference. QuickSales shows its bar below 768 only, because
+   at 768–1199 its three panes already fit two-up. Purchase has no such shape —
+   its invoice table wants the full width at any size below the desktop rail —
+   so the bar runs to 1199.98 and the tablet gets it too. The breakpoint values
+   are QuickSales' own; only which side of 768 they fall on differs.
+
+   The classes are .pu-* rather than .pos-*: quicksales-responsive.css ends with
+   `@media (min-width: 768px) { .pos-tabs { display: none } }`, so reusing the
+   selector would hide the bar on exactly the tablet width this is for, and
+   overriding it would be a specificity fight in a file this does not own.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Was inline on the element; moved here so the pane rules can override it. */
+/* top starts below the sticky topbar, or the panel would slide under it. */
+.pu-sec-total { position: sticky; top: calc(var(--topbar-h) + 16px); display: grid; gap: 16px; }
+
+.pu-tabs { display: none; }
+
+@media (max-width: 1199.98px) {
+
+  .pu-tabs {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    display: grid; grid-auto-columns: 1fr; grid-auto-flow: column;
+    gap: 1px; background: var(--line); border-top: 1px solid var(--line);
+    /* Clear of the home indicator on a phone that has one. */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .pu-tab {
+    position: relative; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 3px;
+    padding: 9px 4px 8px; min-height: 48px;
+    border: none; background: var(--card); color: var(--ink-soft);
+    font-size: 11px; font-weight: 700; cursor: pointer;
+  }
+  .pu-tab span {
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .pu-tab.is-on { color: var(--teal); }
+  .pu-tab.is-on::before {
+    content: ""; position: absolute; inset: 0 0 auto; height: 2.5px; background: var(--teal);
+  }
+  .pu-tab:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+
+  .pu-tab-badge {
+    position: absolute; top: 4px; right: 50%; transform: translateX(22px);
+    min-width: 16px; padding: 0 4px; border-radius: 999px;
+    background: var(--clay); color: #fff;
+    font-size: 9.5px; font-style: normal; font-weight: 800; line-height: 16px;
+  }
+  /* A dot, not a count: "no supplier yet" is a yes/no, and a badge reading 1
+     would invite the question "one what?". */
+  .pu-tab-dot {
+    position: absolute; top: 7px; right: 50%; transform: translateX(20px);
+    width: 7px; height: 7px; border-radius: 999px; background: var(--amber);
+  }
+
+  /* ── One pane at a time ──
+     The sections are hidden rather than unmounted, so a half-typed line and the
+     scroll position of the table both survive a trip to the totals and back.
+
+     The show rules carry the same shape as the hide rules on purpose. Written
+     as the shorter `.pu-pane-lines .pu-sec-lines` they lost the cascade to
+     `.pu-body > div > .pu-sec` — three classes beats two — and the chosen pane
+     stayed hidden while the one with an inline display was the only thing on
+     screen. Matching the shape keeps the two in the same specificity band and
+     lets source order decide, which is what was intended. */
+  .pu-body > div > .pu-sec,
+  .pu-body > .pu-sec { display: none; }
+
+  .pu-body.pu-pane-invoice  > div > .pu-sec-invoice,
+  .pu-body.pu-pane-products > div > .pu-sec-products,
+  .pu-body.pu-pane-lines    > div > .pu-sec-lines,
+  .pu-body.pu-pane-total    > .pu-sec-total { display: block; }
+
+  /* Stacked, the totals rail must stop sticking: fixed to the top of a pane it
+     is the only thing in, it would sit over its own content. */
+  .pu-body.pu-pane-total > .pu-sec-total { position: static; }
+
+  /* Room at the foot for the bar, which is fixed over the top of the page.
+     Without it the last control — Save, or the final line's Remove — sits under
+     the bar and cannot be reached at any scroll position.
+
+     On .pu-body, not .page: .page is every screen in the application, and only
+     this one has a bar to clear. Padding there would put 76px of nothing at the
+     foot of Reports, the Dashboard and every other page on a tablet. */
+  .pu-body { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+}

@@ -1,0 +1,51 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   E-Commerce console screens (staff side). Everything under .ec-*, built on the
+   HR kit's page frame, tables, drawer and timeline; this file only adds the
+   few pieces those screens need that the kit does not name.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.ec-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* Secondary line under a name or a value. */
+.ec-sub { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+
+/* Quiet explanatory text. */
+.ec-fine { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; }
+
+/* A notice inside the drawer: what was asked, why something was refused. */
+.ec-note {
+  padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.5;
+  background: var(--teal-soft); color: var(--ink);
+  border-left: 3px solid var(--teal);
+}
+
+/* A plain label pill beside a status. */
+.ec-tag {
+  display: inline-flex; align-items: center; height: 24px; padding: 0 10px;
+  border-radius: 999px; font-size: 12px; font-weight: 600;
+  background: var(--paper-deep, #eef0ec); color: var(--ink-soft);
+  border: 1px solid var(--line, #dfe3dc);
+}
+
+/* One address or one pharmacy link in the drawer. */
+.ec-line {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--line, #e6e8e3); font-size: 13px;
+}
+.ec-line:last-child { border-bottom: none; }
+.ec-line b { display: block; color: var(--ink); margin-bottom: 2px; }
+
+/* One ordered item in the orders drawer: heavier than .ec-line because the
+   person reading it is picking stock off a shelf, not skimming a list. */
+.ec-card {
+  padding: 11px 13px; border: 1px solid var(--line, #e6e8e3); border-radius: 12px;
+  background: var(--card, #fff); font-size: 13px;
+}
+.ec-card b { color: var(--ink); }
+
+/* A plain link inside a drawer pane — the map pin, mostly. */
+.ec-link {
+  display: inline-block; margin-top: 12px; font-size: 12.5px; font-weight: 600;
+  color: var(--teal); text-decoration: none; border-bottom: 1px solid currentColor;
+}
+.ec-link:hover { opacity: .8; }

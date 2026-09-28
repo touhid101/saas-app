@@ -1,0 +1,504 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   accounts.css — the Accounts screens.
+
+   Everything lives under .acc-*, on top of the HR kit's page frame, KPI
+   tiles, tables, drawers and steppers (hr.css). This file adds only what a
+   ledger needs and the kit does not have: money that lines up, labelled
+   figures with a tone, the day-sheet count grid, the control centre list,
+   the settings form, and the rule editor. Tokens come from styles.css so
+   the three themes keep working; nothing here names a colour.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Numbers ─────────────────────────────────────────────────────────── */
+.acc-money { font-variant-numeric: tabular-nums; white-space: nowrap; font-feature-settings: "tnum"; }
+.acc-drcr { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; }
+.acc-role { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .02em; padding: 1px 6px; border-radius: 6px; background: var(--paper); border: 1px solid var(--line); white-space: nowrap; }
+.acc-roles { display: flex; flex-wrap: wrap; gap: 4px; }
+.acc-muted { color: var(--ink-soft); font-size: 12px; margin: 0; }
+.acc-hint { color: var(--ink-soft); font-size: 12.5px; line-height: 1.5; margin: 0 0 10px; }
+.acc-group { font-weight: 600; letter-spacing: .01em; }
+.acc-source { display: inline-flex; gap: 4px; align-items: baseline; font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
+.acc-source b { color: var(--ink); font-weight: 600; font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+.acc-h3 { font-size: 16px; margin: 6px 0 0; }
+.acc-h4 { font-size: 14px; margin: 0; }
+.acc-summary { font-size: 11px; white-space: pre-wrap; }
+
+/* ── Layout ──────────────────────────────────────────────────────────── */
+.acc-two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.acc-two-lists { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; min-width: 0; }
+.acc-two-lists > div { min-width: 0; }
+.acc-two-lists h4 { font-size: 13px; margin-bottom: 8px; }
+.acc-card { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.acc-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.acc-card-head h3 { font-size: 15px; }
+.acc-card-head p { margin-top: 2px; }
+.acc-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.acc-row-actions { display: inline-flex; gap: 6px; white-space: nowrap; }
+.acc-quick { display: flex; gap: 4px; flex-wrap: wrap; }
+.acc-quick-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+.acc-inline { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; }
+.acc-inline + .acc-inline { margin-top: 6px; }
+
+/* ── Forms ───────────────────────────────────────────────────────────── */
+.acc-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+.acc-form-grid .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.acc-form-grid .field label { font-size: 12px; color: var(--ink-soft); }
+.acc-form-grid input, .acc-form-grid select, .acc-form-grid textarea { width: 100%; }
+.acc-span2 { grid-column: 1 / -1; }
+.acc-balance-note { display: flex; gap: 12px; align-items: center; justify-content: flex-end; padding: 8px 4px 0; font-size: 13px; }
+.acc-balance-note.is-off { color: var(--clay); }
+.acc-balance-note.is-ok { color: var(--sage); }
+
+/* Line tables inside forms and rule editors: the kit's lines table, plus room for selects. */
+.acc-lines-table th { font-size: 11.5px; text-align: left; }
+.acc-lines-table td { padding: 4px; vertical-align: middle; }
+.acc-lines-table input, .acc-lines-table select { width: 100%; min-width: 0; padding: 5px 7px; font-size: 12.5px; }
+.acc-lines-table input[type="number"] { text-align: right; font-variant-numeric: tabular-nums; }
+.acc-lines-table tfoot td { font-weight: 600; border-top: 1px solid var(--line); padding-top: 8px; }
+
+/* ── Figures (labelled amounts on a sheet foot or a voucher) ─────────── */
+.acc-figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px 16px; }
+.acc-figures-row { align-items: end; }
+.acc-figure { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 10px; border-radius: 8px; background: var(--paper); }
+.acc-figure-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
+.acc-figure-value { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acc-figure-hint { font-size: 11.5px; color: var(--ink-soft); }
+.acc-figure.is-big .acc-figure-value { font-size: 22px; font-family: 'Fraunces', serif; font-weight: 500; letter-spacing: -0.01em; }
+.acc-figure.is-sage { background: var(--sage-soft); } .acc-figure.is-sage .acc-figure-value { color: var(--sage); }
+.acc-figure.is-amber { background: var(--amber-soft); } .acc-figure.is-amber .acc-figure-value { color: var(--amber-deep); }
+.acc-figure.is-clay { background: var(--clay-soft); } .acc-figure.is-clay .acc-figure-value { color: var(--clay); }
+.acc-figure.is-teal { background: var(--teal-soft); } .acc-figure.is-teal .acc-figure-value { color: var(--teal); }
+.acc-figure-actions { display: flex; align-items: flex-end; justify-content: flex-end; }
+
+/* A figures row is an equation read left to right — Opening + In − Out =
+   Expected — so its tiles are one object: the same ground and edge on every
+   tile, the figures on one baseline (a label may take two lines; the tiles
+   stretch and the number sits at the foot of each). The
+   tone stays in the number; a tinted ground on one tile made "+ In" look like
+   a button beside three facts. The result tile is the one that is set apart. */
+.acc-figures-row { grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); gap: 8px; align-items: stretch; }
+.acc-figures-row .acc-figure { justify-content: flex-end; padding: 9px 10px; background: var(--paper); border: 1px solid var(--line); }
+.acc-figures-row .acc-figure-label { line-height: 1.3; }
+.acc-figures-row .acc-figure-value { line-height: 1.25; }
+.acc-figures-row .acc-figure.is-big { background: var(--teal-soft); border-color: color-mix(in srgb, var(--teal) 35%, var(--line)); }
+.acc-figures-row .acc-figure.is-big .acc-figure-value { font-size: 19px; line-height: 1.2; }
+
+/* ── Alerts ──────────────────────────────────────────────────────────── */
+.acc-alert { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--amber); background: var(--amber-soft); color: var(--ink); font-size: 12.5px; line-height: 1.5; margin: 0; }
+.acc-alert.is-clay { border-color: var(--clay); background: var(--clay-soft); }
+.acc-alert.is-sage { border-color: var(--sage); background: var(--sage-soft); }
+.acc-alert.is-amber { border-color: var(--amber); background: var(--amber-soft); }
+.acc-alert pre { margin: 6px 0 0; white-space: pre-wrap; font-size: 11.5px; max-height: 240px; overflow: auto; }
+.acc-details summary { cursor: pointer; font-size: 12.5px; color: var(--ink-soft); }
+.acc-details pre { font-size: 11.5px; white-space: pre-wrap; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; max-height: 320px; overflow: auto; margin-top: 6px; }
+
+/* ── Drawer status line ──────────────────────────────────────────────── */
+.acc-drawer-status { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 12.5px; color: var(--ink-soft); }
+
+/* ── Lists (dashboard: largest balances) ─────────────────────────────── */
+.acc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.acc-list li { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.acc-list li:last-child { border-bottom: none; }
+.acc-list li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acc-list li b { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
+
+/* ── Control centre ──────────────────────────────────────────────────── */
+.acc-control { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.acc-control li { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.acc-control li:last-child { border-bottom: none; }
+.acc-control li b { font-variant-numeric: tabular-nums; white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: var(--paper); font-weight: 600; }
+.acc-control li.is-warn b { background: var(--amber-soft); color: var(--amber-deep); }
+.acc-control li.is-bad b { background: var(--clay-soft); color: var(--clay); }
+.acc-control li button { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 12px; color: var(--ink); cursor: pointer; }
+.acc-control li button:hover { border-color: var(--teal); color: var(--teal); }
+.acc-control li button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+/* ── Daily cash: the count grid ──────────────────────────────────────── */
+.acc-count td input { width: 88px; text-align: right; font-variant-numeric: tabular-nums; padding: 5px 8px; }
+.acc-count tfoot td { font-weight: 600; border-top: 2px solid var(--line); padding-top: 10px; }
+
+/* ── Settings ────────────────────────────────────────────────────────── */
+.acc-settings { display: flex; flex-direction: column; }
+.acc-setting { display: grid; grid-template-columns: 1fr 220px; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.acc-setting:last-child { border-bottom: none; }
+.acc-setting b { font-size: 13.5px; }
+.acc-setting p { margin-top: 2px; max-width: 62ch; }
+.acc-setting input, .acc-setting select { width: 100%; }
+
+/* ── Rules ───────────────────────────────────────────────────────────── */
+.acc-rule-lines { display: flex; flex-direction: column; gap: 3px; }
+.acc-rule-line { font-family: 'IBM Plex Mono', monospace; font-size: 11px; white-space: nowrap; }
+.acc-rule-line.is-D { color: var(--teal); }
+.acc-rule-line.is-C { color: var(--amber-deep); padding-left: 14px; }
+
+/* ── Reconciliation: integrity checks ────────────────────────────────── */
+.acc-integrity { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; }
+.acc-check { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); font-size: 12.5px; }
+.acc-check .acc-count { min-width: 36px; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; padding: 2px 8px; border-radius: 999px; background: var(--sage-soft); color: var(--sage); }
+.acc-check.is-bad { border-color: var(--clay); }
+.acc-check.is-bad .acc-count { background: var(--clay-soft); color: var(--clay); }
+
+/* ── Responsive: tablet ──────────────────────────────────────────────── */
+@media (max-width: 1199.98px) {
+  .acc-two, .acc-two-lists { grid-template-columns: 1fr; }
+  .acc-setting { grid-template-columns: 1fr 180px; }
+}
+
+/* ── Responsive: phone (the kit's own breakpoint) ────────────────────── */
+@media (max-width: 767.98px) {
+  .acc-form-grid { grid-template-columns: 1fr; }
+  .acc-figures { grid-template-columns: 1fr 1fr; }
+  .acc-figure.is-big { grid-column: 1 / -1; }
+  .acc-figure-actions { grid-column: 1 / -1; justify-content: stretch; }
+  .acc-figure-actions .btn { width: 100%; }
+  .acc-setting { grid-template-columns: 1fr; gap: 6px; }
+  .acc-control li { grid-template-columns: 1fr auto; }
+  .acc-control li button { grid-column: 1 / -1; justify-self: start; }
+  .acc-inline { grid-template-columns: 1fr; }
+  .acc-actions .btn { flex: 1 1 auto; }
+  .acc-balance-note { justify-content: flex-start; flex-wrap: wrap; }
+  .acc-lines-table { display: block; overflow-x: auto; }
+  .acc-count td input { width: 72px; }
+}
+
+@media (max-width: 380px) {
+  .acc-figures { grid-template-columns: 1fr; }
+  .acc-figure.is-big .acc-figure-value { font-size: 19px; }
+}
+
+/* ── Motion ──────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .acc-control li button, .acc-check { transition: none; }
+}
+
+/* ── Print: statements and sheets print as plain tables ──────────────── */
+@media print {
+  .acc-actions, .acc-quick, .acc-figure-actions, .acc-row-actions, .acc-control li button { display: none !important; }
+  .acc-figure { background: none; border: 1px solid #999; }
+}
+
+/* Half-width cards hold tables: dates, numbers and document numbers never wrap;
+   the description under a journal number is what gives way. */
+.acc-card .hr-table td:first-child, .acc-card .hr-table td b, .acc-card .hr-table .hr-num { white-space: nowrap; }
+.acc-card .hr-table .acc-muted { white-space: normal; max-width: 26ch; }
+
+/* Ledger tables: dates, document numbers, money and status never wrap. The
+   description column is the one that gives way. (Desktop and tablet only —
+   below 768 the kit stacks each row into label/value pairs.) */
+@media (min-width: 768px) {
+  .acc-page .hr-table td.hr-td-lead, .acc-page .hr-table td.hr-td-lead b,
+  .acc-page .hr-table td.hr-num, .acc-page .hr-table .hr-status { white-space: nowrap; }
+  .acc-page .hr-table td:first-child { white-space: nowrap; }
+}
+
+/* Section picker inside a drawer on a phone (the top strip is hidden there and
+   the bottom bar would cover the drawer). */
+.acc-tabs-phone { display: none; }
+@media (max-width: 767.98px) {
+  .acc-tabs-phone { display: block; }
+  .acc-tabs-phone select { width: 100%; }
+}
+
+/* Short enumerations ("Default", "This pharmacy") never split mid-word. */
+@media (min-width: 768px) { .acc-page .hr-table td { overflow-wrap: normal; word-break: normal; } }
+
+
+/* ═══ Polish pass — icons, hero, charts, deltas ══════════════════════════ */
+
+/* Chart series colours: validated (dataviz six checks) on the light paper and
+   the dark surface — light #12907C/#B8752B, dark #2FA893/#E06B55. Marks wear
+   these; text never does. */
+:root { --acc-chart-1: #12907C; --acc-chart-2: #B8752B; --acc-chart-3: #4C7A5E; }
+[data-theme="dark"] { --acc-chart-1: #2FA893; --acc-chart-2: #E06B55; --acc-chart-3: #6AAF80; }
+
+/* Page header icon — a tinted disc beside the title, the sidebar's drawing. */
+.acc-page .hr-head { align-items: flex-start; }
+@media (min-width: 768px) { .acc-page .hr-head .hr-head-title { flex: 1 1 320px; } }
+.acc-page .hr-head .hr-head-icon + .hr-head-title { margin-left: 0; }
+.acc-page .hr-head-icon { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; background: var(--teal-soft); color: var(--teal); flex: 0 0 auto; margin-top: 2px; margin-right: -4px; }
+.acc-h3 { display: flex; align-items: center; gap: 8px; }
+.acc-h3 .acc-muted { font-weight: 400; font-family: 'Inter', sans-serif; font-size: 12px; }
+.acc-card-head h3 { display: flex; align-items: center; gap: 7px; }
+.acc-card-head h3 svg { color: var(--teal); flex: 0 0 auto; }
+
+/* KPI tones the kit does not define. */
+.acc-page .hr-kpi.is-teal .hr-kpi-value { color: var(--teal); }
+.acc-page .hr-kpi.is-sage .hr-kpi-value { color: var(--sage); }
+.acc-page .hr-kpi.is-sage .hr-kpi-icon { background: var(--sage-soft); color: var(--sage); }
+.acc-page .hr-kpi.is-red .hr-kpi-value { color: var(--clay); }
+.acc-page .hr-kpi.is-red .hr-kpi-icon, .acc-page .hr-kpi.is-clay .hr-kpi-icon { background: var(--clay-soft); color: var(--clay); }
+.acc-page .hr-kpi.is-amber .hr-kpi-icon { background: var(--amber-soft); color: var(--amber-deep); }
+.acc-page .hr-kpi.is-amber .hr-kpi-value { color: var(--amber-deep); }
+.acc-page .hr-kpi-note { display: flex; align-items: center; gap: 6px; min-height: 16px; }
+
+/* Delta against the previous window. */
+.acc-delta { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.acc-delta.is-good { color: var(--sage); }
+.acc-delta.is-bad { color: var(--clay); }
+.acc-delta.is-flat { color: var(--ink-soft); font-weight: 500; }
+.acc-delta-label { font-weight: 400; color: var(--ink-soft); }
+
+/* Hero: the one number the dashboard leads with, then its four parts. */
+.acc-hero { display: grid; grid-template-columns: minmax(240px, 1fr) 3fr; gap: 16px; align-items: stretch; }
+.acc-hero-main { display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 18px 20px; border-radius: var(--radius-sm); background: var(--card); border: 1px solid var(--line); min-width: 0; }
+.acc-hero-label { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
+.acc-hero-value { font-size: 34px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acc-hero-value.is-sage { color: var(--sage); }
+.acc-hero-value.is-red { color: var(--clay); }
+.acc-hero .hr-kpis { margin: 0; }
+
+/* Refetch keeps the frame: hold the previous render at reduced opacity. */
+.is-refreshing { opacity: .6; transition: opacity .2s ease; }
+
+/* Charts. */
+.acc-chart { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.acc-chart-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.acc-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--ink-soft); }
+.acc-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.acc-key { display: inline-block; width: 14px; height: 0; border-top: 2px solid var(--acc-chart-1); border-radius: 2px; }
+.acc-key.is-2 { border-top-color: var(--acc-chart-2); }
+.acc-key.is-3 { border-top-color: var(--acc-chart-3); }
+.acc-chart-plot { position: relative; }
+.acc-chart-plot svg { display: block; width: 100%; height: auto; overflow: visible; outline: none; }
+.acc-chart-plot svg:focus-visible { box-shadow: 0 0 0 3px var(--teal-soft); border-radius: 8px; }
+.acc-grid { stroke: var(--line); stroke-width: 1; }
+.acc-axis { font-size: 10.5px; fill: var(--ink-soft); font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums; }
+.acc-line { fill: none; stroke: var(--acc-chart-1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.acc-line.is-2 { stroke: var(--acc-chart-2); }
+.acc-line.is-3 { stroke: var(--acc-chart-3); }
+.acc-area { fill: var(--acc-chart-1); opacity: .1; }
+.acc-area.is-2 { fill: var(--acc-chart-2); }
+.acc-area.is-3 { fill: var(--acc-chart-3); }
+.acc-dot { fill: var(--acc-chart-1); stroke: var(--card); stroke-width: 2; }
+.acc-dot.is-2 { fill: var(--acc-chart-2); }
+.acc-dot.is-3 { fill: var(--acc-chart-3); }
+.acc-crosshair { stroke: var(--ink-soft); stroke-width: 1; opacity: .6; pointer-events: none; }
+.acc-tip { position: absolute; top: 8px; transform: translateX(-50%); background: var(--card); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow-lg); padding: 8px 10px; font-size: 12px; pointer-events: none; min-width: 150px; z-index: 2; }
+.acc-tip-date { font-weight: 600; margin-bottom: 4px; }
+.acc-tip-row { display: grid; grid-template-columns: 14px auto 1fr; gap: 6px; align-items: center; }
+.acc-tip-row b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.acc-tip.is-left { transform: translateX(calc(-100% - 10px)); }
+.acc-tip.is-right { transform: translateX(10px); }
+.acc-tip-row span { color: var(--ink-soft); white-space: nowrap; }
+.acc-chart-empty { padding: 28px 12px; text-align: center; color: var(--ink-soft); font-size: 12.5px; border: 1px dashed var(--line); border-radius: 8px; }
+.acc-chart-table { font-size: 12.5px; }
+
+/* Horizontal bar list: one hue, value at the tip. Rows are buttons when they open something. */
+.acc-bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.acc-bars li { display: grid; grid-template-columns: minmax(90px, 32%) 1fr auto; gap: 10px; align-items: center; padding: 4px 6px; }
+.acc-bars li:has(> .acc-bar-btn) { display: block; padding: 0; }
+.acc-bar-btn { display: grid; grid-template-columns: minmax(90px, 32%) 1fr auto; gap: 10px; align-items: center; width: 100%; background: none; border: none; padding: 4px 6px; border-radius: 8px; cursor: pointer; text-align: left; color: var(--ink); font: inherit; }
+.acc-bar-btn:hover { background: var(--paper); }
+.acc-bar-btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.acc-bar-label { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acc-bar-track { display: block; height: 14px; border-radius: 0 4px 4px 0; background: var(--paper-deep); overflow: hidden; }
+.acc-bar-fill { display: block; height: 100%; background: var(--acc-chart-1); border-radius: 0 4px 4px 0; min-width: 2px; transition: width .25s ease; }
+.acc-bar-value { font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+
+/* Control centre rows are whole-row buttons. */
+.acc-control li { padding: 0; display: block; }
+.acc-control-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; width: 100%; padding: 9px 6px; background: none; border: none; border-radius: 8px; color: var(--ink); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.acc-control-row:hover { background: var(--paper); }
+.acc-control-row:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+.acc-control-row b { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: var(--paper); font-weight: 600; }
+.acc-control li.is-warn .acc-control-row b { background: var(--amber-soft); color: var(--amber-deep); }
+.acc-control li.is-bad .acc-control-row b { background: var(--clay-soft); color: var(--clay); }
+.acc-control-row em { font-style: normal; font-size: 12px; color: var(--teal); font-weight: 600; }
+
+/* Register helpers. */
+.acc-type { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .03em; color: var(--ink-soft); }
+.acc-row-hint { font-size: 12px; color: var(--teal); font-weight: 600; white-space: nowrap; opacity: 0; transition: opacity .12s ease; }
+.hr-table tbody tr:hover .acc-row-hint, .hr-table tbody tr:focus-within .acc-row-hint { opacity: 1; }
+.acc-aged { color: var(--amber-deep); font-weight: 600; }
+.acc-aged.is-bad { color: var(--clay); }
+
+/* Report cards: the group's icon beside the name, a one-line description under it. */
+.rpt-card-top { align-items: flex-start; gap: 10px; }
+.rpt-card-icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9px; flex: 0 0 auto; background: var(--paper-deep); color: var(--ink-soft); }
+.rpt-card-icon.is-amber { background: var(--amber-soft); color: var(--amber-deep); }
+.rpt-card-icon.is-teal { background: var(--teal-soft); color: var(--teal); }
+.rpt-card-icon.is-sage { background: var(--sage-soft); color: var(--sage); }
+.rpt-card-icon.is-clay { background: var(--clay-soft); color: var(--clay); }
+.rpt-card-name { display: flex; flex-direction: column; gap: 3px; flex: 1 1 auto; min-width: 0; }
+.rpt-card-desc { font-weight: 400; font-size: 12px; color: var(--ink-soft); line-height: 1.4; }
+
+@media (max-width: 1199.98px) { .acc-hero { grid-template-columns: 1fr; } }
+@media (max-width: 767.98px) {
+  .acc-page .hr-head-icon { display: none; }
+  .acc-hero-value { font-size: 28px; }
+  .acc-bars li, .acc-bar-btn { grid-template-columns: 1fr auto; }
+  .acc-bar-track { grid-column: 1 / -1; }
+  .acc-tip { min-width: 120px; }
+  .acc-control-row { grid-template-columns: 1fr auto; }
+  .acc-control-row em { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: reduce) { .acc-bar-fill, .acc-row-hint, .is-refreshing { transition: none; } }
+
+.acc-ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 34ch; }
+
+/* Quick-create strip: one button per voucher kind, icon + name + a word of meaning. */
+.acc-quick-strip { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+.acc-quick-label { align-self: center; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); margin-right: 2px; }
+.acc-quick-btn { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; text-align: left; padding: 7px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font: inherit; cursor: pointer; transition: border-color .12s ease, box-shadow .12s ease; }
+.acc-quick-btn svg { grid-row: 1 / 3; color: var(--teal); }
+.acc-quick-btn span { font-size: 13px; font-weight: 600; }
+.acc-quick-btn small { font-size: 11px; color: var(--ink-soft); }
+.acc-quick-btn:hover { border-color: var(--teal); box-shadow: var(--shadow); }
+.acc-quick-btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+@media (max-width: 767.98px) { .acc-quick-strip { display: grid; grid-template-columns: 1fr 1fr; } .acc-quick-label { grid-column: 1 / -1; } }
+
+.acc-now { margin-left: 8px; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); background: var(--teal-soft); padding: 1px 6px; border-radius: 999px; vertical-align: middle; }
+.hr-table tbody tr.is-current td { background: var(--teal-soft); }
+.acc-page .btn.acc-danger:hover { border-color: var(--clay); color: var(--clay); }
+
+.acc-note { max-width: 52ch; white-space: normal; }
+.acc-page .hr-table td.hr-td-lead .acc-muted { white-space: normal; }
+
+
+/* ═══ Dashboard, second pass — interaction and finish ════════════════════ */
+
+/* Four categorical series (validated light #12907C/#B8752B/#6B5FB5/#A8452E, dark #2FA893/#E06B55/#8C7FE0/#B87A3E)
+   and a single-hue ageing ramp, light (current) → dark (oldest). */
+:root { --acc-chart-3: #6B5FB5; --acc-chart-4: #A8452E; --acc-age-1: #CFE7E1; --acc-age-2: #8FC7BA; --acc-age-3: #3FA08E; --acc-age-4: #146B5F; }
+[data-theme="dark"] { --acc-chart-3: #8C7FE0; --acc-chart-4: #B87A3E; --acc-age-1: #234A43; --acc-age-2: #2F7A6C; --acc-age-3: #3FA893; --acc-age-4: #8FD8C8; }
+.acc-line.is-4 { stroke: var(--acc-chart-4); } .acc-area.is-4 { fill: var(--acc-chart-4); } .acc-dot.is-4 { fill: var(--acc-chart-4); } .acc-key.is-4 { border-top-color: var(--acc-chart-4); }
+
+/* Legend items are buttons: click hides a series; the muted one is off. */
+.acc-legend-btn { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; padding: 2px 4px; border-radius: 6px; font: inherit; font-size: 12px; color: var(--ink-soft); cursor: pointer; }
+.acc-legend-btn:hover { color: var(--ink); background: var(--paper); }
+.acc-legend-btn.is-off { opacity: .45; text-decoration: line-through; }
+.acc-legend-btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.acc-key.is-prev { border-top-style: dashed; border-top-color: var(--ink-soft); }
+.acc-key.is-block { width: 12px; height: 12px; border: none; border-radius: 3px; background: var(--acc-chart-1); }
+.acc-key.is-block.is-2 { background: var(--acc-chart-2); } .acc-key.is-block.is-3 { background: var(--acc-chart-3); } .acc-key.is-block.is-4 { background: var(--acc-chart-4); }
+.acc-key.is-block.is-age-1 { background: var(--acc-age-1); } .acc-key.is-block.is-age-2 { background: var(--acc-age-2); } .acc-key.is-block.is-age-3 { background: var(--acc-age-3); } .acc-key.is-block.is-age-4 { background: var(--acc-age-4); }
+
+/* Segmented chart options. */
+.acc-chart-tools { display: inline-flex; gap: 2px; padding: 2px; border-radius: 9px; background: var(--paper-deep); border: 1px solid var(--line); }
+.acc-seg { background: none; border: none; padding: 4px 10px; border-radius: 7px; font: inherit; font-size: 12px; font-weight: 600; color: var(--ink-soft); cursor: pointer; }
+.acc-seg.is-on { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+.acc-seg:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+
+/* Previous-window overlay: dashed, muted, behind. */
+.acc-line.is-prev { stroke-dasharray: 5 4; opacity: .45; stroke-width: 1.5; }
+.acc-tip-prev { font-style: normal; color: var(--ink-soft); }
+
+/* Draw-in on first paint; off under reduced motion. */
+.acc-line[pathLength] { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.acc-line.is-drawn { stroke-dashoffset: 0; transition: stroke-dashoffset .9s ease-out; }
+.acc-area { opacity: 0; transition: opacity .6s ease .5s; }
+.acc-area.is-drawn { opacity: .1; }
+
+/* Sparklines inside tiles and the hero. */
+.acc-spark { display: block; overflow: visible; }
+.acc-spark-line { fill: none; stroke: var(--acc-chart-1); stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+.acc-spark-line.is-2 { stroke: var(--acc-chart-2); } .acc-spark-line.is-4 { stroke: var(--acc-chart-4); }
+.acc-spark-area { fill: var(--acc-chart-1); opacity: .12; } .acc-spark-area.is-2 { fill: var(--acc-chart-2); } .acc-spark-area.is-4 { fill: var(--acc-chart-4); }
+.acc-page .hr-kpi-note { flex-wrap: wrap; row-gap: 4px; }
+.acc-page .hr-kpi-note .acc-spark { margin-left: auto; }
+
+/* Hero, refined. */
+.acc-hero-main { gap: 8px; background: linear-gradient(135deg, var(--card) 0%, var(--teal-soft) 140%); }
+.acc-hero-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.acc-hero-margin { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); padding: 1px 8px; border-radius: 999px; background: var(--paper); font-variant-numeric: tabular-nums; }
+.acc-hero-spark { display: flex; align-items: center; gap: 10px; }
+.acc-hero-spark .acc-spark { width: 160px; height: 34px; }
+.acc-hero-share { margin-top: 4px; }
+.acc-hero-share-label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); margin-bottom: 6px; }
+.acc-stamp { color: var(--ink-soft); }
+
+/* Share bar (100 %). */
+.acc-share { display: flex; flex-direction: column; gap: 8px; }
+.acc-share-bar { display: flex; height: 18px; border-radius: 6px; overflow: hidden; background: var(--paper-deep); gap: 2px; }
+.acc-share-seg { display: inline-flex; align-items: center; justify-content: center; border: none; padding: 0; margin: 0; min-width: 2px; background: var(--acc-chart-1); color: #fff; font: 600 10.5px/1 'Inter', sans-serif; cursor: default; transition: filter .12s ease, flex-basis .3s ease; }
+.acc-share-seg.is-2 { background: var(--acc-chart-2); } .acc-share-seg.is-3 { background: var(--acc-chart-3); } .acc-share-seg.is-4 { background: var(--acc-chart-4); }
+.acc-share-seg.is-age-1 { background: var(--acc-age-1); color: var(--ink); } .acc-share-seg.is-age-2 { background: var(--acc-age-2); color: var(--ink); } .acc-share-seg.is-age-3 { background: var(--acc-age-3); } .acc-share-seg.is-age-4 { background: var(--acc-age-4); }
+[data-theme="dark"] .acc-share-seg.is-age-4 { color: var(--paper-deep); }
+button.acc-share-seg { cursor: pointer; }
+.acc-share-seg.is-hover, .acc-share-seg:hover { filter: brightness(1.08); }
+.acc-share-seg:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+.acc-share-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px; }
+.acc-share-legend { gap: 4px 14px; }
+.acc-share-legend li { gap: 6px; padding: 2px 4px; border-radius: 6px; }
+.acc-share-legend li.is-hover { background: var(--paper); }
+.acc-share-legend b { font-variant-numeric: tabular-nums; color: var(--ink); }
+.acc-share-legend em { font-style: normal; font-variant-numeric: tabular-nums; }
+
+/* Ageing card. */
+.acc-ageing-grid { display: grid; gap: 16px; }
+.acc-ageing { display: flex; flex-direction: column; gap: 8px; }
+.acc-ageing-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+.acc-share-bar.is-ageing { height: 22px; }
+
+/* Collapsible sections. */
+.acc-fold { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; padding: 0; margin: 0; color: inherit; font: inherit; cursor: pointer; text-align: left; }
+.acc-fold h3 { margin: 0; }
+.acc-fold-caret { color: var(--ink-soft); transition: transform .18s ease; }
+.acc-section.is-folded .acc-fold-caret { transform: rotate(-90deg); }
+.acc-fold:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 6px; }
+.acc-card-side { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.acc-card-title { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.acc-card-title p { margin: 0; }
+.acc-card-side { flex: 0 0 auto; }
+.acc-section.is-folded { padding-bottom: 12px; }
+
+/* Today strip. */
+.acc-today { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; background: var(--paper-deep); border: 1px solid var(--line); }
+.acc-today-label { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); margin-right: 4px; }
+.acc-today button { display: inline-flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 12.5px; color: var(--ink); cursor: pointer; }
+.acc-today button span { color: var(--ink-soft); }
+.acc-today button b { font-variant-numeric: tabular-nums; }
+.acc-today button:hover { border-color: var(--teal); }
+.acc-today button:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+
+/* Health badge and live toggle. */
+.acc-health { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.acc-health.is-ok { background: var(--sage-soft); color: var(--sage); }
+.acc-health.is-warn { background: var(--amber-soft); color: var(--amber-deep); }
+.acc-health.is-bad { background: var(--clay-soft); color: var(--clay); }
+.acc-auto { display: inline-flex; align-items: center; gap: 7px; }
+.acc-auto-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line-2, var(--line)); }
+.acc-auto.is-on .acc-auto-dot { background: var(--sage); box-shadow: 0 0 0 0 var(--sage-soft); animation: acc-pulse 2s ease-out infinite; }
+@keyframes acc-pulse { 0% { box-shadow: 0 0 0 0 rgba(76,122,94,.45); } 100% { box-shadow: 0 0 0 8px rgba(76,122,94,0); } }
+
+/* Bars: a selected branch, a negative amount. */
+.acc-bars li.is-selected .acc-bar-btn { background: var(--teal-soft); }
+.acc-bar-fill.is-neg { background: var(--acc-chart-4); }
+.acc-mini { font-size: 12.5px; margin-top: 8px; }
+.acc-neg { color: var(--clay); }
+
+/* Tile hover lift (kit gives the outline; this adds the lift). */
+.acc-page .hr-kpi.is-link { transition: transform .15s ease, box-shadow .15s ease; }
+.acc-page .hr-kpi.is-link:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+
+@media (max-width: 767.98px) {
+  .acc-hero-spark .acc-spark { width: 120px; }
+  .acc-chart-head { align-items: flex-start; }
+  .acc-today button { flex: 1 1 40%; justify-content: space-between; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .acc-line.is-drawn, .acc-area, .acc-fold-caret, .acc-share-seg, .acc-page .hr-kpi.is-link { transition: none; }
+  .acc-auto.is-on .acc-auto-dot { animation: none; }
+}
+
+/* Hero tiles: a 2×2 block beside the hero card, each tile filling its cell. */
+.acc-hero .hr-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; }
+.acc-hero .hr-kpi { justify-content: space-between; }
+@media (max-width: 1199.98px) { .acc-hero .hr-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 767.98px) { .acc-hero .hr-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ── Daily Cash: six tiles and seven steps in rows that stay even ──────
+   The kit's auto-fit grid wrapped the six KPIs as five and one, and the
+   stepper's 150px floor put "Day closed" alone on a second line, on a laptop
+   or a zoomed desktop. Six halves into three, and a step tile needs no more
+   than 128px to hold its number and a two-line name. The difference tile is
+   the widest ("OVER ৳ 12,942.33"): its figure is allowed a second line rather
+   than the whole row being sized for it. */
+.acc-dc .hr-kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.acc-dc .hr-kpi-value { overflow-wrap: anywhere; }
+.acc-dc .hr-stepper-step { flex-basis: 128px; }
+.acc-dc .hr-stepper-text b { line-height: 1.25; }
+@media (max-width: 1439.98px) { .acc-dc .hr-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 767.98px) { .acc-dc .hr-kpis { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 380px)    { .acc-dc .hr-kpis { grid-template-columns: 1fr; } }
+

@@ -1,0 +1,271 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   SIDEBAR BRANCH IDENTITY — the pharmacy's mark and name
+   ═══════════════════════════════════════════════════════════════════════════
+
+   The block at the top of the sidebar that says which pharmacy you are signed
+   in at. Three states, one shape:
+
+       sidebar   mark + "PHARMA ERP" + branch name
+       rail      mark only, name as a tooltip
+       drawer    same as the sidebar, on a phone
+
+   The mark is a fixed square whatever it contains — a logo, or the pharmacy's
+   initial when there is none or the file has gone. Fixed, because the name
+   beside it must start at the same x on every screen: a mark that sized itself
+   to its image made the heading jump as logos loaded.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ═══ The mark ════════════════════════════════════════════════════════════ */
+
+.brand-mark {
+  /* Width and height come from the `size` prop, so the same component serves
+     the 30px sidebar and the 26px rail without a second set of rules. */
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 9px;
+
+  /* The fallback look. An <img> covers it completely when there is one, so
+     these only show for the initial — and briefly behind a transparent PNG,
+     which is what a pharmacy logo usually is. */
+  background: rgba(184, 117, 43, .22);
+  color: var(--amber);
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 800;
+  line-height: 1;
+  user-select: none;
+
+  /* A hairline, so a white logo on the dark sidebar still reads as a tile
+     rather than dissolving into the panel behind it. */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .10);
+}
+
+.brand-mark img {
+  width: 100%;
+  height: 100%;
+  /* contain, not cover: a logo is artwork with its own margins, and cropping
+     one to fill a square cuts the edges off the wordmark. */
+  object-fit: contain;
+  display: block;
+}
+
+
+/* ═══ The name ════════════════════════════════════════════════════════════ */
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* min-width:0 on both, or the name refuses to shrink below its text and pushes
+   the mark out of the panel instead of truncating itself. */
+.brand-text {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/* A button, because it is tappable — but it must read as the heading it is,
+   so every default a button brings has to be undone. */
+.sidebar-brand .name {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Tapped open: the full name over as many lines as it needs. Capped at three,
+   because the menu below still has to fit, and a pharmacy that needs four
+   lines has a name no header will ever show whole. */
+.sidebar-brand .name.is-expanded {
+  white-space: normal;
+  overflow: visible;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+}
+
+.sidebar-brand .name:hover { color: #fff; }
+.sidebar-brand .name:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+
+/* ═══ Rail ════════════════════════════════════════════════════════════════
+   Icons only. The mark is centred and the name is a tooltip on the wrapper,
+   which is the only way to identify the pharmacy at this width. */
+
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .sidebar-brand { padding: 14px 8px; }
+  .brand-mark { border-radius: 8px; }
+}
+
+
+/* ═══ Drawer (phones) ═════════════════════════════════════════════════════
+   300px of panel, so the name has more room here than in the 244px sidebar —
+   most pharmacy names fit whole and never need the tap. */
+
+@media (max-width: 767.98px) {
+  .sidebar-brand { padding: 18px 16px 14px; }
+  .brand-row { gap: 12px; }
+
+  /* Bigger than the desktop 30px: the drawer is a screen of its own rather
+     than a strip beside the content, and the mark is its heading. */
+  .brand-mark {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 16px !important;
+    border-radius: 10px;
+  }
+
+  /* Room enough for two lines before the tap is needed at all. */
+  .sidebar-brand .name { font-size: 17px; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TABLET RAIL — icons that can be read, and opened out
+   ═══════════════════════════════════════════════════════════════════════════
+
+   The rail was a column of unlabelled icons with no way to expand: the toggle
+   that opens the sidebar was hidden at exactly these widths, and the collapsed
+   state was forced by the breakpoint rather than chosen. So a tablet user had
+   sixteen glyphs, no names, and nothing to click. Two things fix that.
+
+   1. Hovering an icon names it, without opening anything.
+   2. The toggle is back, and opening the rail floats it over the page.
+
+   Floating rather than pushing, because 244px out of 768px is a third of the
+   screen: pushing reflows every table underneath, and the menu is a glance,
+   not a new layout.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 768px) and (max-width: 1023.98px) {
+
+  /* ── 1. A label on hover ────────────────────────────────────────────────
+     The rail already sets `title`, but a native tooltip waits a second, is
+     drawn by the OS, and cannot be styled to match anything. This is instant
+     and looks like the menu it belongs to. */
+  .sidebar-collapsed .nav-item { position: relative; }
+
+  /* The label itself lives in .nav-tip, outside the rail — a pseudo-element
+     cannot escape a scroll container, and the rail has to scroll. */
+
+
+  /* The rail has to do two things at once: let a tooltip paint outside its
+     56px, and scroll its own menu.
+
+     `overflow: visible` bought the first and lost the second. The rail lists
+     every page flat — no headings to collapse — so on a 1000px screen the menu
+     is around 1280px, and with nothing to scroll it simply spilled down the
+     document. The page then scrolled to reveal the rest of the menu, the
+     sticky sidebar ran out of containing block, and the whole rail slid away.
+
+     `clip` on one axis, unlike `visible`, does not force the other to `auto` —
+     so the menu can scroll vertically while overflow-clip-margin lets the
+     tooltip paint 260px past the right edge. Where overflow-clip-margin is not
+     supported the tooltip is clipped, which is the old native-title behaviour
+     rather than a broken menu. */
+  .sidebar-collapsed {
+    overflow-x: clip;
+    overflow-y: auto;
+    overflow-clip-margin: 260px;
+  }
+  .sidebar-collapsed .sidebar-nav { overflow: visible; }
+
+  /* The rail is 56px of icons; a scrollbar inside it would take a quarter of
+     that. It scrolls by wheel and by keyboard, and the bar is not drawn. */
+  .sidebar-collapsed::-webkit-scrollbar,
+  .sidebar-collapsed .sidebar-nav::-webkit-scrollbar { width: 0; height: 0; }
+  .sidebar-collapsed, .sidebar-collapsed .sidebar-nav { scrollbar-width: none; }
+
+  /* ── 2. Opened out, over the page ──────────────────────────────────────── */
+  .sidebar.rail-open {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 244px !important;     /* beats the rail's own 56px !important */
+    z-index: 100;
+    overflow-y: auto;
+    box-shadow: 0 0 40px rgba(0, 0, 0, .35);
+  }
+
+  /* Labels and headings come back with the width. The rail hides them with a
+     plain display:none, so they only need turning on again. */
+  .sidebar.rail-open .kicker,
+  .sidebar.rail-open .name,
+  .sidebar.rail-open .sidebar-group-label,
+  .sidebar.rail-open .sidebar-footer,
+  .sidebar.rail-open .nav-item span:not(.badge-count) { display: revert; }
+
+  .sidebar.rail-open .nav-item {
+    justify-content: flex-start;
+    padding: 10px 14px;
+    min-height: 42px;
+  }
+
+  /* No tooltips when the labels are right there. */
+  .sidebar.rail-open .nav-item::after { content: none; }
+}
+
+
+/* ═══ The rail's label ════════════════════════════════════════════════════
+
+   Rendered as a sibling of the sidebar, not a child of it, and positioned from
+   the item's own box. The rail scrolls its menu — it has to, or a screen
+   shorter than thirty icons spills the menu down the document — and a scroll
+   container clips everything inside it on both axes. Nothing that must appear
+   outside the rail can live within it. */
+
+.nav-tip {
+  position: fixed;
+  z-index: 120;
+  transform: translateY(-50%);
+  pointer-events: none;          /* never intercepts the click meant for the icon */
+
+  padding: 7px 11px;
+  border-radius: 8px;
+  background: var(--sidebar);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, .12);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .35);
+
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+
+  animation: nav-tip-in .12s ease-out;
+}
+
+@keyframes nav-tip-in {
+  from { opacity: 0; transform: translateY(-50%) translateX(-4px); }
+  to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-tip { animation: none; }
+}
+
+/* Only the rail has unlabelled icons. At every other width the menu says what
+   it is, and a second copy floating beside it would be noise. */
+@media (max-width: 767.98px), (min-width: 1024px) {
+  .nav-tip { display: none; }
+}

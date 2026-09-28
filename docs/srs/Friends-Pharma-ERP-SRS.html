@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Friends Pharma ERP — Business Requirements Specification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Palette and faces are the product's own design tokens, so the specification
+   reads as part of the system it describes rather than as a separate artefact. */
+:root{
+  --ink:#182420; --ink-soft:#5A6357; --paper:#F5F4EC; --paper-deep:#ECEADC;
+  --card:#FFFFFF; --line:#E3E1D2;
+  --amber:#B8752B; --amber-deep:#8F5A1E; --amber-soft:#F3E3C8;
+  --teal:#2E6A62; --teal-soft:#DCEAE5;
+  --sage:#4C7A5E; --sage-soft:#E1EBE1;
+  --clay:#A8452E; --clay-soft:#F3DCD4;
+  --rail:280px;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --serif:"Fraunces",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ink:#E8EAE6; --ink-soft:#9BA89F; --paper:#141A17; --paper-deep:#0F1510;
+  --card:#1C2420; --line:#2A3530;
+  --amber:#D4925A; --amber-deep:#E8A96A; --amber-soft:rgba(212,146,90,.15);
+  --teal:#4A9B8E; --teal-soft:rgba(74,155,142,.15);
+  --sage:#6AAF80; --sage-soft:rgba(106,175,128,.15);
+  --clay:#E06B55; --clay-soft:rgba(224,107,85,.15);
+}}
+:root[data-theme="dark"]{
+  --ink:#E8EAE6; --ink-soft:#9BA89F; --paper:#141A17; --paper-deep:#0F1510;
+  --card:#1C2420; --line:#2A3530;
+  --amber:#D4925A; --amber-deep:#E8A96A; --amber-soft:rgba(212,146,90,.15);
+  --teal:#4A9B8E; --teal-soft:rgba(74,155,142,.15);
+  --sage:#6AAF80; --sage-soft:rgba(106,175,128,.15);
+  --clay:#E06B55; --clay-soft:rgba(224,107,85,.15);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+     font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{display:grid;grid-template-columns:var(--rail) minmax(0,1fr);gap:0;
+      max-width:1500px;margin:0 auto;align-items:start}
+
+/* ── masthead ── */
+header.mast{grid-column:1/-1;padding:56px 40px 34px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+         color:var(--amber-deep);font-weight:600;margin:0 0 12px}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(30px,4vw,46px);line-height:1.1;
+   margin:0 0 8px;text-wrap:balance;letter-spacing:-.01em}
+.sub{font-size:17px;color:var(--ink-soft);margin:0 0 22px;max-width:62ch}
+.facts{display:flex;flex-wrap:wrap;gap:8px 26px;font-size:13px;color:var(--ink-soft);
+       font-variant-numeric:tabular-nums}
+.facts b{color:var(--ink);font-weight:600}
+.method{margin:22px 0 0;padding:14px 16px;border-left:3px solid var(--amber);
+        background:var(--card);border-radius:0 9px 9px 0;font-size:13.5px;
+        color:var(--ink-soft);max-width:88ch}
+
+/* ── rail ── */
+nav.rail{position:sticky;top:0;max-height:100vh;overflow-y:auto;padding:26px 14px 40px 40px;
+         border-right:1px solid var(--line)}
+nav.rail .t{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+            color:var(--ink-soft);font-weight:600;padding:0 10px 10px}
+nav.rail a{display:flex;gap:10px;align-items:baseline;padding:6px 10px;border-radius:8px;
+           color:var(--ink-soft);text-decoration:none;font-size:13.5px;line-height:1.35;
+           transition:background .12s ease,color .12s ease}
+nav.rail a:hover{background:var(--paper-deep);color:var(--ink)}
+nav.rail a.on{background:var(--card);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(24,36,32,.05)}
+nav.rail a .n{font-family:var(--mono);font-size:11px;color:var(--amber-deep);min-width:16px}
+nav.rail a:focus-visible{outline:2px solid var(--teal);outline-offset:-2px}
+
+/* ── document ── */
+main{padding:26px 40px 100px;min-width:0}
+section{padding:26px 0 10px;border-top:1px solid var(--line);scroll-margin-top:20px}
+section:first-of-type{border-top:0;padding-top:14px}
+h2{font-family:var(--serif);font-weight:600;font-size:27px;margin:0 0 14px;
+   display:flex;gap:14px;align-items:baseline;text-wrap:balance}
+h2 .num{font-family:var(--mono);font-size:14px;color:var(--amber-deep);font-weight:600}
+h3{font-family:var(--sans);font-weight:700;font-size:15.5px;margin:26px 0 10px;
+   letter-spacing:-.005em}
+p{margin:0 0 13px;max-width:78ch}
+p.lead{font-size:16px;color:var(--ink-soft);max-width:74ch;margin-bottom:18px}
+code{font-family:var(--mono);font-size:.88em;background:var(--paper-deep);
+     padding:1px 5px;border-radius:4px}
+.mono{font-family:var(--mono);font-size:12.5px}
+ul.bul{margin:0 0 14px;padding-left:20px}
+ul.bul li{margin-bottom:6px;max-width:78ch}
+
+/* ── tables ── */
+.tw{overflow-x:auto;margin:0 0 18px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+   color:var(--ink-soft);font-weight:600;padding:11px 14px;background:var(--paper-deep);
+   border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0}
+td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--paper)}
+
+/* ── chips ── */
+.chip{display:inline-block;font-family:var(--mono);font-size:9.5px;font-weight:600;
+      letter-spacing:.05em;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.c-ok{background:var(--sage-soft);color:var(--sage)}
+.c-part{background:var(--amber-soft);color:var(--amber-deep)}
+.c-no{background:var(--clay-soft);color:var(--clay)}
+.c-rec{background:var(--teal-soft);color:var(--teal)}
+.c-confirm{background:var(--paper-deep);color:var(--ink-soft)}
+
+/* ── callouts ── */
+.callout{margin:0 0 18px;padding:14px 17px;background:var(--card);border:1px solid var(--line);
+         border-left:3px solid var(--teal);border-radius:0 10px 10px 0;font-size:13.5px;
+         line-height:1.6;max-width:88ch}
+.callout.warn{border-left-color:var(--amber)}
+
+/* ── articles: workflow, calc, requirement, gap ── */
+article{background:var(--card);border:1px solid var(--line);border-radius:12px;
+        padding:20px 22px;margin:0 0 16px}
+article h3{margin:0 0 12px;font-size:16px;display:flex;gap:11px;align-items:baseline;flex-wrap:wrap}
+.cid{font-family:var(--mono);font-size:11.5px;color:var(--amber-deep);font-weight:600}
+.sev{margin-left:auto;font-size:12px;color:var(--ink-soft);font-weight:500}
+.meta{font-size:12.5px;color:var(--ink-soft);margin:0 0 12px}
+.req{font-size:15px;font-weight:500;margin:0 0 14px;max-width:80ch}
+.src{font-size:12px;color:var(--ink-soft);margin:0 0 12px}
+.note{font-size:12.5px;color:var(--ink-soft);line-height:1.6;max-width:82ch}
+
+dl.kv{display:grid;grid-template-columns:132px minmax(0,1fr);gap:7px 18px;margin:0;font-size:13.5px}
+dl.kv dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+         color:var(--ink-soft);font-weight:600;padding-top:3px}
+dl.kv dd{margin:0;max-width:78ch}
+dd.ev{word-break:break-word}
+
+ol.steps{margin:12px 0 14px;padding-left:22px}
+ol.steps li{margin-bottom:7px;max-width:80ch}
+ol.steps li::marker{font-family:var(--mono);font-size:12px;color:var(--amber-deep)}
+
+pre.formula{font-family:var(--mono);font-size:12.5px;line-height:1.75;background:var(--paper-deep);
+            border-radius:8px;padding:13px 15px;margin:0 0 12px;overflow-x:auto;
+            white-space:pre;color:var(--ink)}
+.ex{border-top:1px dashed var(--line);padding-top:14px;margin-top:14px}
+.ex-h{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+      color:var(--amber-deep);font-weight:600;margin-bottom:9px}
+.ex-given{font-size:13px;margin:0 0 10px}
+.ex-res{font-size:13.5px;color:var(--teal);margin:0;font-weight:500}
+.conf{font-size:14.5px;padding:13px 16px;background:var(--sage-soft);border-radius:9px;
+      max-width:82ch;color:var(--ink)}
+
+/* ── mermaid ── */
+.mer{background:var(--card);border:1px solid var(--line);border-radius:10px;
+     padding:16px;margin:0 0 18px;overflow-x:auto}
+.mer pre.mermaid{margin:0;background:none;text-align:center}
+
+footer{grid-column:1/-1;padding:26px 40px 50px;border-top:1px solid var(--line);
+       font-size:12.5px;color:var(--ink-soft)}
+
+@media (max-width:1000px){
+  .wrap{grid-template-columns:minmax(0,1fr)}
+  nav.rail{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--line);
+           padding:18px 22px;display:flex;flex-wrap:wrap;gap:4px}
+  nav.rail .t{width:100%;padding-left:0}
+  nav.rail a{padding:5px 9px;font-size:12.5px}
+  header.mast{padding:34px 22px 24px}
+  main{padding:18px 22px 70px}
+  footer{padding:22px}
+  dl.kv{grid-template-columns:minmax(0,1fr);gap:2px 0}
+  dl.kv dd{margin-bottom:9px}
+}
+@media print{
+  nav.rail{display:none} .wrap{grid-template-columns:1fr}
+  section{break-inside:avoid-page} article{break-inside:avoid}
+  body{background:#fff}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">Business Requirements Specification · v2.0</p>
+  <h1>Friends Pharma ERP</h1>
+  <p class="sub">Multi-Tenant Pharmacy POS, Inventory &amp; Trading Platform</p>
+  <div class="facts">
+    <span><b>14</b> modules</span>
+    <span><b>36</b> screens</span>
+    <span><b>34</b> controllers · ~380 operations</span>
+    <span><b>64</b> tables · <b>8</b> views</span>
+    <span><b>30</b> business rules</span>
+    <span><b>15</b> calculations</span>
+    <span><b>12</b> gaps</span>
+    <span><b>9 September 2026</b></span>
+  </div>
+  <p class="method">Reverse-engineered from the running system. 327 Java files, 98 React files, 63 JPA entities, 64 database tables, 8 views, 34 REST controllers, 68 repositories, 49 services, 71 Flyway migrations and 24 test classes were read. The live schema was queried and the running API probed. No application source, script or configuration was modified.</p>
+</header>
+
+<nav class="rail" aria-label="Contents">
+  <div class="t">Contents</div>
+  <a href="#overview"><span class="n">1</span>System Overview</a><a href="#architecture"><span class="n">2</span>Architecture</a><a href="#modules"><span class="n">3</span>Modules</a><a href="#roles"><span class="n">4</span>Roles &amp; Permissions</a><a href="#screens"><span class="n">5</span>Screens</a><a href="#apis"><span class="n">6</span>API Inventory</a><a href="#data"><span class="n">7</span>Data Model</a><a href="#rules"><span class="n">8</span>Business Rules</a><a href="#workflows"><span class="n">9</span>Workflows</a><a href="#calcs"><span class="n">10</span>Business Calculations</a><a href="#frs"><span class="n">11</span>Functional Requirements</a><a href="#reports"><span class="n">12</span>Reports &amp; KPIs</a><a href="#integrations"><span class="n">13</span>Integrations &amp; Notifications</a><a href="#nfr"><span class="n">14</span>Non-Functional Requirements</a><a href="#qa"><span class="n">15</span>Validation &amp; QA</a><a href="#gaps"><span class="n">16</span>Gap Analysis</a><a href="#next"><span class="n">17</span>Recommendations</a><a href="#quality"><span class="n">18</span>Analysis Quality</a>
+</nav>
+
+<main><section id="overview"><h2><span class="num">1</span>System Overview</h2><p>One installation of <b>Friends Pharma ERP</b> runs many independent pharmacies. Each may run several
+   branches, and each branch trades on its own — its own stock, invoices, staff and permissions. The platform
+   covers the whole trading cycle: buying from suppliers, holding stock by batch and expiry, selling at the
+   counter, taking returns in both directions, delivering and collecting cash, and reporting on all of it.</p>
+   <div class="callout"><b>The business problem it solves.</b> A pharmacy's margin lives in details that are easy to
+   lose — a supplier's free goods, a cashback at quarter end, a batch bought cheaply and sold after a price rise.
+   Recorded loosely, none of it reaches the accounts. This system makes every one of them reduce the recorded cost
+   of the goods that actually arrived, so profit reported is profit earned.</div>
+   <h3>Technology</h3><div class="tw"><table><thead><tr><th>Layer</th><th>Technology</th><th>Notes</th></tr></thead><tbody><tr><td>Frontend</td><td>React 18 + Vite</td><td>36 pages, 16 shared components, 27 API service modules</td></tr><tr><td>Routing</td><td>None (no router library)</td><td>A single shell switches on a `page` state key</td></tr><tr><td>State</td><td>React Context (AppContext)</td><td>Session, permissions, menu, notifications, toasts</td></tr><tr><td>HTTP</td><td>apiClient wrapper</td><td>Bearer token, refresh-on-401, session/subscription expiry events</td></tr><tr><td>Backend</td><td>Spring Boot 3.3.2 (Java 21)</td><td>34 controllers, 49 service implementations</td></tr><tr><td>Security</td><td>Spring Security 6.3.1 + JWT</td><td>Stateless; four servlet filters in a fixed order</td></tr><tr><td>Persistence</td><td>Spring Data JPA / Hibernate 6.5</td><td>63 entities; native SQL for all reporting</td></tr><tr><td>Database</td><td>PostgreSQL, schema `pharma`</td><td>64 base tables, 8 views</td></tr><tr><td>Migration</td><td>Flyway</td><td>71 migrations, baselined at V63</td></tr><tr><td>Scheduling</td><td>Spring @Scheduled</td><td>4 jobs</td></tr><tr><td>API docs</td><td>springdoc-openapi</td><td>Swagger UI</td></tr><tr><td>Tests</td><td>JUnit 5 + Mockito</td><td>24 classes, 297 tests, all passing</td></tr></tbody></table></div>
+   <h3>Repository map</h3><div class="tw"><table><thead><tr><th>Path</th><th>Holds</th></tr></thead><tbody><tr><td class="mono">src/pages</td><td>36 screen components — one per business screen</td></tr><tr><td class="mono">src/components</td><td>16 shared components (Card, Pill, Field, Modal, SearchSelect, QtyInput …)</td></tr><tr><td class="mono">src/services</td><td>27 API client modules, one per domain</td></tr><tr><td class="mono">src/lib</td><td>apiClient, AppContext, ConfirmProvider, usePermission</td></tr><tr><td class="mono">backend/…/controller</td><td>34 REST controllers</td></tr><tr><td class="mono">backend/…/service/impl</td><td>49 service implementations — all business logic</td></tr><tr><td class="mono">backend/…/repository</td><td>68 repositories; reporting uses native queries</td></tr><tr><td class="mono">backend/…/entity</td><td>63 JPA entities</td></tr><tr><td class="mono">backend/…/security</td><td>JWT, filters, PermissionGuard, UserPrincipal</td></tr><tr><td class="mono">backend/…/util</td><td>4 stateless calculators — the money rules</td></tr><tr><td class="mono">backend/…/scheduler</td><td>Cart cleanup, low-stock and expiry alerts</td></tr><tr><td class="mono">backend/…/db/migration</td><td>71 Flyway scripts, V64 upward are the ones production has run</td></tr></tbody></table></div></section><section id="architecture"><h2><span class="num">2</span>Architecture</h2><div class="mer"><pre class="mermaid">flowchart LR
+  U["User"] --> FE["React SPA"]
+  FE -->|"Bearer JWT"| API["REST Controllers"]
+  API --> F["Filter chain"]
+  F --> SVC["Business Services"]
+  SVC --> CALC["Money Calculators"]
+  SVC --> REPO["Repositories"]
+  REPO --> DB[("PostgreSQL — schema pharma")]
+  SVC --> FS[("Local file storage")]
+  SCH["Scheduled jobs"] --> SVC</pre></div>
+   <h3>Security filter chain</h3>
+   <p>The order is load-bearing: each filter depends on what the one before it established.</p>
+   <div class="tw"><table><thead><tr><th>#</th><th>Filter</th><th>Responsibility</th></tr></thead><tbody><tr><td>1</td><td class="mono">JwtAuthenticationFilter</td><td>Establishes the principal from the Bearer token.</td></tr><tr><td>2</td><td class="mono">ActingBranchFilter</td><td>Resolves the branch being acted as. Only a platform operator may act as another branch.</td></tr><tr><td>3</td><td class="mono">TenantStatusFilter</td><td>Refuses a tenant whose subscription has lapsed, outside an open-path allow list.</td></tr><tr><td>4</td><td class="mono">ForcedPasswordChangeFilter</td><td>While an account holds an administrator-issued password it may reach only self-read and self-change.</td></tr></tbody></table></div>
+   <h3>Architectural notes</h3><div class="tw"><table><thead><tr><th>Concern</th><th>How it is handled</th></tr></thead><tbody><tr><td>Money arithmetic</td><td>Four stateless utility classes (PurchaseCalculator, SalesPriceCalculator, ProductPricingCalculator, TransactionCalculator). Pure functions, unit tested, so the create and update paths cannot drift apart.</td></tr><tr><td>Reporting</td><td>Native SQL against database views, not recomputed in Java, so a screen and its report cannot disagree.</td></tr><tr><td>Tenancy</td><td>Organisation is taken from the JWT and never from the request body. A cross-tenant identifier returns 404, not 403, so the API never confirms another organisation's record exists.</td></tr><tr><td>File storage</td><td>Local filesystem under UPLOAD_ROOT for product images, avatars and branch logos.</td></tr></tbody></table></div>
+   <div class="callout warn"><b>Flyway is baselined at V63.</b> No migration numbered V63 or below has ever executed
+   against production. Tables that predate the baseline exist because they were created by hand or by Hibernate;
+   rows those early migrations would have seeded do <b>not</b> exist. Any migration that must reach production has
+   to be numbered V64 or above.</div></section><section id="modules"><h2><span class="num">3</span>Modules</h2><p class="lead">14 business modules, identified by correlating frontend pages, API endpoints, backend services and database entities.</p><div class="tw"><table><thead><tr><th>ID</th><th>Module</th><th>Purpose</th><th>Screens</th><th>APIs</th><th>Backend</th><th>Database</th><th>Status</th></tr></thead><tbody><tr><td class="mono">M-01</td><td>Authentication &amp; Session</td><td>Sign in, token refresh, own profile and password, forced change</td><td>Login, Register, ForcePasswordChange</td><td>/api/auth (7)</td><td>AuthServiceImpl</td><td>ACL_USER, POS_REFRESH_TOKENS</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">M-02</td><td>Access Control</td><td>Roles, per-branch module rights, password administration</td><td>RBAC, BranchRBAC, UserPermissions, ModuleRoles, PasswordAdmin</td><td>/api/v1/rbac (26), /api/v1/branch-rbac (3), /api/admin/passwords (3)</td><td>PermissionServiceImpl, PasswordAdminService</td><td>ACL_GROUP, ACL_USER_PERMISSION, POS_PERMISSIONS, ACL_PASSWORD_RESET_AUDIT</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">M-03</td><td>Product &amp; Catalogue</td><td>Branch product master, global catalogue, versioning, bulk import</td><td>ProductMaster, Catalogue, CatalogueForm, CatalogueMasters, BranchCatalogue</td><td>/api/products (13), /api/catalogue (4), /api/admin/global-products (8)</td><td>ProductServiceImpl, ProductBulkServiceImpl</td><td>POS_PRODUCT_INFO, GLOBAL_PRODUCT</td><td><span class="chip c-part">PARTIALLY IMPLEMENTED</span></td></tr><tr><td class="mono">M-04</td><td>Purchasing</td><td>Supplier invoice, approval, bonus, gift, cashback, supplier scoping</td><td>Purchase</td><td>/api/purchases (10)</td><td>PurchaseServiceImpl, StockPostingServiceImpl</td><td>POS_TRANSACTION_MST/DTL, POS_STOCK_BATCH</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">M-05</td><td>Purchase Return &amp; Credit</td><td>Return goods to a supplier and raise credit against payable</td><td>PurchaseReturn</td><td>/api/purchase-returns (4)</td><td>PurchaseReturnServiceImpl</td><td>POS_TRANSACTION_MST (type PR)</td><td><span class="chip c-part">PARTIALLY IMPLEMENTED</span></td></tr><tr><td class="mono">M-06</td><td>Supplier Settlement</td><td>Payment against invoices, advances, allocation, ageing</td><td>SupplierPayment</td><td>/api/supplier-payments (10)</td><td>SupplierPaymentServiceImpl</td><td>POS_SUPPLIER_PAYMENT, V_SUPPLIER_ACCOUNT_BRANCH</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">M-07</td><td>Inventory</td><td>Batches, FEFO issue, movement ledger, valuation, expiry</td><td>Inventory</td><td>/api/inventory (12)</td><td>StockPostingServiceImpl, InventoryServiceImpl</td><td>POS_STOCK_BATCH, POS_STOCK_MOVEMENT</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">M-08</td><td>Sales &amp; POS</td><td>Full sales screen, fast till, returns, invoice merge, discounts</td><td>Sales, QuickSales, SalesReturn, InvoiceMerge, SalesDiscount, SalesActivity, SalesPerformance</td><td>/api/sales (18), /api/v1/pos (13), /api/sales-returns (4), /api/sales-merges (5), /api/v1/sales-discount (9)</td><td>SalesServiceImpl, PosServiceImpl</td><td>POS_TRANSACTION_MST (SL/SR), POS_CART</td><td><span class="chip c-part">PARTIALLY IMPLEMENTED</span></td></tr><tr><td class="mono">M-09</td><td>Fulfilment</td><td>Delivery assignment and cash collection</td><td>Delivery, Collection</td><td>/api/v1/collections (8)</td><td>CollectionServiceImpl</td><td>POS_DELIVERY_COLLECTION</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">M-10</td><td>Requisition</td><td>Inter-branch stock request, approval, conversion</td><td>Requisition, NewRequisition</td><td>/api/v1/requisitions (16)</td><td>RequisitionServiceImpl</td><td>POS_REQUISITION_MST/DTL</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">M-11</td><td>Reporting &amp; Analytics</td><td>18 grid reports, dashboard, internal analytics assistant</td><td>Reports, Dashboard, AIAgent</td><td>/api/reports (2), /api/dashboard (1), /api/ai (3)</td><td>ReportGridServiceImpl, DashboardServiceImpl, AiCopilotServiceImpl</td><td>8 views + native queries</td><td><span class="chip c-part">PARTIALLY IMPLEMENTED</span></td></tr><tr><td class="mono">M-12</td><td>Tenancy &amp; Subscription</td><td>Public sign-up, approval queue, plans, terms, invoices, the access gate</td><td>Register, Tenants, TenantDetail, Subscription, PlatformConsole</td><td>/api/public/register (2), /api/admin/onboarding (17), /api/admin/subscriptions (19), /api/subscription (3)</td><td>TenantOnboardingService, SubscriptionServiceImpl, TenantStatusService</td><td>TENANT_REGISTRATION, SUB_*</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">M-13</td><td>Reference Data</td><td>Suppliers, customers, categories, units, areas, companies, generics</td><td>MasterData</td><td>MasterDataController (75)</td><td>MasterDataServiceImpl</td><td>POS_SUPPLIER_INFO, POS_CUSTOMER_INFO, POS_GENERIC_INFO …</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">M-14</td><td>Notifications</td><td>In-app notifications and scheduled operational alerts</td><td>(topbar bell)</td><td>/api/notifications (1)</td><td>NotificationServiceImpl, CartCleanupScheduler</td><td>POS_NOTIFICATION</td><td><span class="chip c-part">PARTIALLY IMPLEMENTED</span></td></tr></tbody></table></div></section><section id="roles"><h2><span class="num">4</span>Roles &amp;amp; Permissions</h2><div class="tw"><table><thead><tr><th>Code</th><th>Role</th><th>Principal responsibility</th></tr></thead><tbody><tr><td class="mono">ROLE01</td><td>Super Admin</td><td>Everything; across tenants only when in the platform organisation</td></tr><tr><td class="mono">ROLE02</td><td>Administrator (Branch)</td><td>Full control of one pharmacy</td></tr><tr><td class="mono">ROLE03</td><td>Pharmacist</td><td>Sales, POS, sales return</td></tr><tr><td class="mono">ROLE04</td><td>Accounts</td><td>Supplier payment, collection, finance reporting</td></tr><tr><td class="mono">ROLE05</td><td>Purchase Manager</td><td>Purchase, purchase return, product</td></tr><tr><td class="mono">ROLE06</td><td>Delivery Staff</td><td>Delivery and collection</td></tr><tr><td class="mono">ROLE07</td><td>Store Keeper</td><td>Inventory, purchase return</td></tr><tr><td class="mono">ROLE08</td><td>Viewer</td><td>Read only</td></tr><tr><td class="mono">ROLE09</td><td>Sales Manager</td><td>Sales, targets, performance</td></tr></tbody></table></div>
+   <div class="callout warn"><b>How authorities are granted.</b> A Super Admin (any ROLE01 holder) receives
+   <code>ROLE_ADMIN</code>, <code>ROLE_SUPER_ADMIN</code> and <code>ROLE_ROLE01..ROLE_ROLE09</code>.
+   <b>Every other user receives exactly one authority: <code>ROLE_&lt;their code&gt;</code>.</b> An annotation naming a
+   role code no user is ever granted is therefore unreachable — and fails closed rather than loudly. That was the
+   mechanism behind GAP-01.</div>
+   <h3>Platform operator</h3>
+   <p>A platform operator is <code>isAdmin()</code> <b>and</b> in the platform organisation. Both halves are required:
+   the platform runs its own pharmacy, so being in that organisation alone does not make somebody an operator.</p>
+   <h3>Two layers</h3>
+   <p>Coarse access is the role annotation on the controller. Fine access is a per-branch matrix
+   (<code>POS_PERMISSIONS</code>) read through <code>PermissionGuard</code>, gating View / Create / Edit / Delete /
+   Approve / Export / Print per module.</p>
+   <div class="tw"><table><thead><tr><th>Module</th><th>Who holds rights today</th><th>Note</th></tr></thead><tbody><tr><td>MOD03 Purchase Invoice</td><td>ROLE01, ROLE02, ROLE05</td><td>Approve receives stock and locks the invoice</td></tr><tr><td>MOD04 Sales Invoice</td><td>ROLE01, ROLE02, ROLE03, ROLE09</td><td>Approve issues stock FEFO</td></tr><tr><td>MOD08 Sales Discount%</td><td>ROLE01, ROLE02 full; ROLE09 add/edit only</td><td>Delete withheld from Sales Manager</td></tr><tr><td>MOD10 Collection</td><td>ROLE01, ROLE02 full; ROLE04 add/edit; ROLE06 add</td><td>Cancel requires Delete</td></tr><tr><td>MOD11 Requisition</td><td>Per matrix</td><td>Approve and Reject both key on the Approve tick</td></tr><tr><td>MOD01 Dashboard</td><td>Approve tick gates money</td><td>Anyone who can open it holds View, so View cannot gate takings</td></tr></tbody></table></div></section><section id="screens"><h2><span class="num">5</span>Screens</h2><p class="lead">36 page components. The shell renders one at a time from a <code>page</code> state key; there is no router library. Representative screens:</p><div class="tw"><table><thead><tr><th>ID</th><th>Module</th><th>Screen</th><th>Route key</th><th>Actor</th><th>Main function</th><th>API</th><th>Status</th></tr></thead><tbody><tr><td class="mono">SC-01</td><td>M-01</td><td>Login</td><td class="mono">shell (not logged in)</td><td>Any</td><td>Username and password against a JWT</td><td class="mono">/api/auth/login</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">SC-02</td><td>M-01</td><td>ForcePasswordChange</td><td class="mono">stands in place of the app</td><td>Any mid-reset</td><td>Set own password before anything else is reachable</td><td class="mono">/api/auth/me/password</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">SC-03</td><td>M-11</td><td>Dashboard</td><td class="mono">dashboard</td><td>All</td><td>Operations and finance tiles; money gated on the Approve right</td><td class="mono">/api/dashboard</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">SC-04</td><td>M-03</td><td>ProductMaster</td><td class="mono">productmaster</td><td>ROLE01/02/05</td><td>Product CRUD with versioning; searchable pickers; name unique per branch</td><td class="mono">/api/products</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">SC-05</td><td>M-04</td><td>Purchase</td><td class="mono">purchase</td><td>ROLE01/02/05</td><td>Keyboard-first entry; bonus, gift and cashback; central TP%; supplier scoping</td><td class="mono">/api/purchases</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">SC-06</td><td>M-05</td><td>PurchaseReturn</td><td class="mono">purchasereturn</td><td>ROLE01/02/05/07</td><td>Return to supplier; Returns-raised list</td><td class="mono">/api/purchase-returns</td><td><span class="chip c-part">PARTIALLY IMPLEMENTED</span></td></tr><tr><td class="mono">SC-07</td><td>M-06</td><td>SupplierPayment</td><td class="mono">supplierpayment</td><td>ROLE01/02/04/05</td><td>Pay invoices, hold advances, see ageing</td><td class="mono">/api/supplier-payments</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">SC-08</td><td>M-08</td><td>QuickSales</td><td class="mono">quicksales</td><td>ROLE01/02/03/09</td><td>Fast till; three panes; bottom tab bar on a phone</td><td class="mono">/api/v1/pos</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">SC-09</td><td>M-08</td><td>Sales</td><td class="mono">sales</td><td>ROLE01/02/03/09</td><td>Full sales invoice with customer and delivery</td><td class="mono">/api/sales</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">SC-10</td><td>M-07</td><td>Inventory</td><td class="mono">inventory</td><td>ROLE01</td><td>Stock on hand, batches, valuation, expiry, movements</td><td class="mono">/api/inventory</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">SC-11</td><td>M-11</td><td>Reports</td><td class="mono">reports</td><td>Per matrix</td><td>18 grid reports; each declares its own columns and filters</td><td class="mono">/api/reports</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">SC-12</td><td>M-02</td><td>PasswordAdmin</td><td class="mono">passwords</td><td>Platform operator</td><td>Credential state per account; issue a temporary password; reset trail</td><td class="mono">/api/admin/passwords</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">SC-13</td><td>M-12</td><td>Tenants / TenantDetail</td><td class="mono">tenants</td><td>Platform operator</td><td>Approval queue and tenant administration</td><td class="mono">/api/admin/onboarding</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">SC-14</td><td>M-10</td><td>Requisition</td><td class="mono">requisition</td><td>Per matrix</td><td>Inter-branch request, approve, convert</td><td class="mono">/api/v1/requisitions</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">SC-15</td><td>M-13</td><td>MasterData</td><td class="mono">master / orgstructure</td><td>ROLE01/02</td><td>Suppliers, customers, categories, units, generics, companies</td><td class="mono">MasterDataController</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr></tbody></table></div></section><section id="apis"><h2><span class="num">6</span>API Inventory</h2><p class="lead">34 REST controllers, roughly 380 operations. The Roles column is the class-level <code>@PreAuthorize</code>; several controllers apply finer method-level rules, and services apply the permission matrix beyond that.</p><div class="tw"><table><thead><tr><th>Controller</th><th>Base path</th><th>Roles</th><th>Ops</th><th>Purpose</th></tr></thead><tbody><tr><td>AdminOnboardingController</td><td class="mono">/api/admin/onboarding</td><td>ROLE01</td><td>17</td><td>Registration queue, approve or reject, provision a tenant</td></tr><tr><td>AdminSubscriptionController</td><td class="mono">/api/admin/subscriptions</td><td>ROLE01</td><td>19</td><td>Plans, terms, subscriptions, invoices, payments</td></tr><tr><td>AiCopilotController</td><td class="mono">/api/ai</td><td>authenticated</td><td>3</td><td>Analytics answered from the ledger — no external service</td></tr><tr><td>AuthController</td><td class="mono">/api/auth</td><td>—</td><td>7</td><td>Login, refresh, logout, me, profile, own password, avatar</td></tr><tr><td>BranchCatalogueController</td><td class="mono">/api/catalogue</td><td>ROLE01</td><td>4</td><td>Global catalogue import into a branch</td></tr><tr><td>BranchRbacController</td><td class="mono">/api/v1/branch-rbac</td><td>ROLE01, ROLE02</td><td>3</td><td>Per-branch permission matrix</td></tr><tr><td>CollectionController</td><td class="mono">/api/v1/collections</td><td>matrix (MOD10)</td><td>8</td><td>Cash collection against sales invoices</td></tr><tr><td>DashboardController</td><td class="mono">/api/dashboard</td><td>authenticated</td><td>1</td><td>Operations and finance dashboard</td></tr><tr><td>GlobalMasterController</td><td class="mono">/api/admin/global-masters</td><td>ROLE01</td><td>17</td><td>Platform-wide reference data</td></tr><tr><td>GlobalProductController</td><td class="mono">/api/admin/global-products</td><td>ROLE01</td><td>8</td><td>Platform product catalogue</td></tr><tr><td>GlobalSearchController</td><td class="mono">/api/v1/search</td><td>—</td><td>1</td><td>Cross-module search (Ctrl+K)</td></tr><tr><td>InventoryController</td><td class="mono">/api/inventory</td><td>ROLE01</td><td>12</td><td>Stock, batches, valuation, expiry, movements</td></tr><tr><td>MasterDataController</td><td class="mono">(various)</td><td>ROLE01, ROLE02</td><td>75</td><td>Suppliers, customers, categories, units, areas, companies</td></tr><tr><td>NotificationController</td><td class="mono">/api/notifications</td><td>—</td><td>1</td><td>In-app notifications</td></tr><tr><td>OnboardingController</td><td class="mono">/api/public/register</td><td>—</td><td>2</td><td>Public pharmacy sign-up</td></tr><tr><td>PasswordAdminController</td><td class="mono">/api/admin/passwords</td><td>ROLE01 + platform operator</td><td>3</td><td>Account list, reset, audit trail</td></tr><tr><td>PlatformConsoleController</td><td class="mono">/api/admin/console</td><td>ROLE01</td><td>1</td><td>Platform KPIs</td></tr><tr><td>PosController</td><td class="mono">/api/v1/pos</td><td>—</td><td>13</td><td>Cart, hold, checkout, barcode lookup</td></tr><tr><td>ProductController</td><td class="mono">/api/products</td><td>ROLE01/02/05</td><td>13</td><td>Product CRUD, versioning, bulk import</td></tr><tr><td>ProductImageBackfillController</td><td class="mono">/api/admin/product-images</td><td>ROLE01</td><td>3</td><td>Image backfill utility</td></tr><tr><td>PurchaseController</td><td class="mono">/api/purchases</td><td>ROLE01/02/05</td><td>10</td><td>Purchase CRUD, approve, cancel</td></tr><tr><td>PurchaseReturnController</td><td class="mono">/api/purchase-returns</td><td>ROLE01/02/05/07</td><td>4</td><td>Returns to supplier and credit</td></tr><tr><td>RbacController</td><td class="mono">/api/v1/rbac</td><td>ROLE01, ROLE02</td><td>26</td><td>Users, roles, modules, permissions</td></tr><tr><td>ReportController</td><td class="mono">/api/v1/reports</td><td>—</td><td>31</td><td>Legacy surface — every endpoint fails (GAP-02)</td></tr><tr><td>ReportGridController</td><td class="mono">/api/reports</td><td>—</td><td>2</td><td>Catalogue and run for all 18 grid reports</td></tr><tr><td>RequisitionController</td><td class="mono">/api/v1/requisitions</td><td>matrix (MOD11)</td><td>16</td><td>Inter-branch requisition</td></tr><tr><td>SalesController</td><td class="mono">/api/sales</td><td>ROLE01/02/03/09</td><td>18</td><td>Sales invoicing, approval, cancel</td></tr><tr><td>SalesDiscountController</td><td class="mono">/api/v1/sales-discount</td><td>matrix (MOD08)</td><td>9</td><td>Company and product discount tiers</td></tr><tr><td>SalesMergeController</td><td class="mono">/api/sales-merges</td><td>ROLE01/02/03/09</td><td>5</td><td>Merge invoices for one delivery</td></tr><tr><td>SalesPercentController</td><td class="mono">/api/sales-percentages</td><td>ROLE01/02/05</td><td>6</td><td>Sales percentage master</td></tr><tr><td>SalesPerformanceController</td><td class="mono">/api/sales-performance</td><td>—</td><td>2</td><td>Target against achievement</td></tr><tr><td>SalesReturnController</td><td class="mono">/api/sales-returns</td><td>ROLE01/02/03</td><td>4</td><td>Customer returns</td></tr><tr><td>SubscriptionController</td><td class="mono">/api/subscription</td><td>authenticated</td><td>3</td><td>Own subscription status</td></tr><tr><td>SupplierPaymentController</td><td class="mono">/api/supplier-payments</td><td>ROLE01/02/04/05</td><td>10</td><td>Payment, advance, allocation</td></tr></tbody></table></div></section><section id="data"><h2><span class="num">7</span>Data Model</h2><p class="lead">PostgreSQL, schema <code>pharma</code>: 64 base tables, 8 views, 63 mapped entities.</p><h3>Core entities</h3><div class="tw"><table><thead><tr><th>Table</th><th>Business name</th><th>Business significance</th></tr></thead><tbody><tr><td class="mono">POS_TRANSACTION_MST</td><td>Trading Document Header</td><td>Purchases (PU), sales (SL) and both returns (PR/SR) in one table, told apart by TRANSACTION_TYPE. PID_SUP_CUST points at a supplier or a customer depending on that type. STATUS: D draft, P pending, A approved, C cancelled. CASHBACK_AMOUNT, AMOUNT_TOBE_PAID, PID_TRAN_MST_RETURN.</td></tr><tr><td class="mono">POS_TRANSACTION_DTL</td><td>Document Line Item</td><td>QUANTITY, BONUS_QTY, LINE_KIND (PURCHASE or GIFT), MNP_PRICE, MRP_PRICE, IGTA, TP_PCT, DISCOUNT_PCT, FLAT_DISCOUNT, TOTAL_PRICE, NO_OF_PCS, SALES_TYPE, BATCH_NO, EXPIRY_DATE.</td></tr><tr><td class="mono">POS_STOCK_BATCH</td><td>Stock Lot</td><td>One lot of one product at one branch. QTY_PCS, RECEIVED_PCS, ISSUED_PCS, COST_PER_PCS, MRP_PRICE, EXPIRY_DATE, SOURCE_TRAN_MST.</td></tr><tr><td class="mono">POS_STOCK_MOVEMENT</td><td>Stock Ledger Entry</td><td>Every movement in or out, with the cost snapshot that fixes margin at the moment of sale.</td></tr><tr><td class="mono">POS_PRODUCT_INFO</td><td>Branch Product Master</td><td>Pricing (MRP, TP, IGTA, BUY, VAT, conversion rate), stock ladder, and the versioning chain PID_ROOT_PRODUCT / VERSION_NO / SUPERSEDED_BY.</td></tr><tr><td class="mono">POS_SUPPLIER_INFO</td><td>Supplier</td><td>POS_PID_COMPANY is the manufacturer they represent and governs what may be bought from them. PID_COMPANY is the tenant's own company — a different thing.</td></tr><tr><td class="mono">POS_SUPPLIER_PAYMENT</td><td>Supplier Payment / Advance</td><td>AMOUNT, ADVANCE_AMOUNT, PAYMENT_MODE, ENTRY_TYPE, optional PID_TRAN_MST.</td></tr><tr><td class="mono">POS_REQUISITION_MST/DTL</td><td>Inter-Branch Requisition</td><td>STAGE: DRAFT, SUBMITTED, APPROVED, REJECTED, CONVERTED, CANCELLED.</td></tr><tr><td class="mono">ACL_USER</td><td>User Account</td><td>PASSWORD_HASH, MUST_CHANGE_PASSWORD, TEMP_PASSWORD_EXPIRES, PID_ROLE, PID_BRANCH, PID_ORG.</td></tr><tr><td class="mono">ACL_PASSWORD_RESET_AUDIT</td><td>Password Reset Trail</td><td>Actor, target, branch, time, address and outcome — refusals recorded as well as resets.</td></tr><tr><td class="mono">SUB_PLAN / SUB_TERM / SUB_SUBSCRIPTION / SUB_INVOICE / SUB_PAYMENT</td><td>Tenancy Commercials</td><td>Plan, term, expiry, grace, invoice and payment.</td></tr></tbody></table></div>
+   <h3>Views</h3>
+   <p>Reporting and settlement read views rather than recomputing, so a screen and its report cannot disagree.</p>
+   <div class="tw"><table><thead><tr><th>View</th><th>Answers</th></tr></thead><tbody><tr><td class="mono">V_PURCHASE_PAYABLE</td><td>Per approved purchase: BILLED, PAID_AT_INVOICE, PAID_LATER, RETURN_CREDIT, DUE, AGE_DAYS</td></tr><tr><td class="mono">V_SUPPLIER_PAYMENT_LINE</td><td>Every payment line, INVOICE or MANUAL source, with APPLIED and ADVANCE_AMOUNT</td></tr><tr><td class="mono">V_SUPPLIER_ACCOUNT</td><td>Per supplier per organisation: outstanding, advance, net position</td></tr><tr><td class="mono">V_SUPPLIER_ACCOUNT_BRANCH</td><td>The same grained per branch — the one every screen must use</td></tr><tr><td class="mono">V_PRODUCT_LAST_PURCHASE</td><td>Most recent purchase price per product</td></tr><tr><td class="mono">V_SUPPLIER_PRODUCT</td><td>Which products a supplier may sell, from their manufacturer</td></tr><tr><td class="mono">V_INVOICE_PAYMENT_MISMATCH</td><td>Reconciliation: invoices whose payments do not agree</td></tr><tr><td class="mono">V_INVOICE_UNLOCK_LOG</td><td>Who unlocked an approved invoice, and when</td></tr></tbody></table></div>
+   <div class="callout"><b>One table holds four document types.</b> <code>POS_TRANSACTION_MST</code> carries purchases
+   (PU), sales (SL), purchase returns (PR) and sales returns (SR), told apart by <code>TRANSACTION_TYPE</code>, with
+   <code>PID_SUP_CUST</code> pointing at a supplier or a customer depending on that type. Every query against it must
+   filter on the type — omitting it silently mixes purchases with sales, and both with their returns.</div></section><section id="rules"><h2><span class="num">8</span>Business Rules</h2><p class="lead">30 rules extracted from validation, service logic, database constraints and permission checks.</p><div class="tw"><table><thead><tr><th>ID</th><th>Business rule</th><th>Enforced at</th><th>Note</th><th>Status</th></tr></thead><tbody><tr><td class="mono">BR-001</td><td>A purchase line must have a quantity greater than zero, unless it is a free gift.</td><td>Service (PurchaseServiceImpl.requireLineShape)</td><td>Refusal names the fix: "mark the line as a gift"</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-002</td><td>A free-gift line carries no purchase quantity and must carry a bonus.</td><td>Service + DB check constraint CK_TRAN_DTL_QUANTITY (V70)</td><td>Both kinds enforced per LINE_KIND</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-003</td><td>A supplier represents one manufacturer; only that maker's products may be purchased from them.</td><td>Service (requireLinesFromSupplier)</td><td>Enforced server-side, not merely hidden in the picker</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-004</td><td>A free gift is the one exception to BR-003 — a supplier may give away another maker's product.</td><td>Service</td><td>Gift lines skip the manufacturer test</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-005</td><td>Cashback may not exceed the invoice value.</td><td>Service (CASHBACK_EXCEEDS_INVOICE)</td><td></td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-006</td><td>An approved invoice cannot be edited; correction is by purchase return.</td><td>Service (PURCHASE_ALREADY_APPROVED)</td><td>Stock has already moved</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-007</td><td>Stock may not be received at a cost per piece above its MRP per piece.</td><td>Service (requireCostBelowMrp)</td><td>Refused at approval, stating the multiple</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-008</td><td>Stock is issued first-expiry-first-out.</td><td>Service (StockPostingServiceImpl)</td><td>Sales and sales returns</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-009</td><td>The cost of a sale is the batch's cost at the moment of sale, not the product's current cost.</td><td>Stock movement snapshot</td><td>Re-pricing cannot retrospectively change past profit</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-010</td><td>Editing a product creates a new version and retires the previous one.</td><td>Service (ProductServiceImpl)</td><td>Transactions keep pointing at what was actually traded</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-011</td><td>A superseded product version cannot be edited.</td><td>Service (PRODUCT_VERSION_SUPERSEDED)</td><td>Editing it would fork the version chain</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-012</td><td>A product name is unique within a branch.</td><td>Service</td><td>Shared (null-branch) rows form their own list</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-013</td><td>SKU is optional and NOT unique.</td><td>Service + DB (V72 dropped the unique index)</td><td>Business decision, 2026-09-05. Barcode remains unique</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-014</td><td>A barcode is unique per branch, among active products.</td><td>DB unique index UQ_PRODUCT_BRANCH_BARCODE</td><td></td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-015</td><td>A user may never read or write another organisation's data.</td><td>Service + JWT</td><td>Cross-tenant ids return 404, not 403</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-016</td><td>Acting as another branch requires platform-operator status (ROLE01 AND platform organisation).</td><td>ActingBranchFilter + BranchScopeService</td><td></td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-017</td><td>A tenant past expiry and grace is refused, outside an administration allow list.</td><td>TenantStatusFilter</td><td>SUSPENDED is refused immediately regardless of dates</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-018</td><td>A stored password can never be displayed; only its state is reported.</td><td>PasswordAdminService</td><td>BCrypt is one-way by construction</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-019</td><td>A Super Admin may not reset their own password, nor another platform operator's.</td><td>PasswordAdminService</td><td>Both refusals are recorded</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-020</td><td>An account holding a temporary password may reach only self-read and self-change.</td><td>ForcedPasswordChangeFilter</td><td>Enforced server-side, not by the screen</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-021</td><td>A temporary password expires; an expired one is refused outright.</td><td>Filter + TEMP_PASSWORD_EXPIRES</td><td></td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-022</td><td>Who may cancel a collection, or write a discount rule, is the permission matrix — not a role named in code.</td><td>CollectionServiceImpl, SalesDiscountServiceImpl</td><td>Corrected 2026-09-06 (GAP-01)</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-023</td><td>Approving or rejecting a requisition keys on the Approve tick for Requisition.</td><td>RequisitionServiceImpl</td><td>Screen and server read the same matrix</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-024</td><td>A requisition may be edited only in DRAFT or SUBMITTED.</td><td>RequisitionServiceImpl</td><td></td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-025</td><td>Report totals cover the whole result set, never the page on screen.</td><td>ReportGridServiceImpl</td><td>A footer summing visible rows looks like an answer and is not</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-026</td><td>Supplier outstanding is a position as at today and is never date-filtered.</td><td>V_SUPPLIER_ACCOUNT_BRANCH</td><td>Narrowing it would drop older unpaid bills</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-027</td><td>Only approved documents reach a financial report.</td><td>Views filter STATUS = 'A'</td><td></td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-028</td><td>A purchase return reduces supplier payable only when its payment type is ADJUSTMENT.</td><td>V_PURCHASE_PAYABLE</td><td>Business meaning unresolved — see GAP-04</td><td><span class="chip c-confirm">REQUIRES BUSINESS CONFIRMATION</span></td></tr><tr><td class="mono">BR-029</td><td>A generic is the drug; the manufacturer belongs to the product, not the generic.</td><td>MasterData (field removed 2026-09-09)</td><td>0 of 27 generics ever carried one</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td class="mono">BR-030</td><td>Money is BigDecimal at scale 2, HALF_UP. No floating point anywhere.</td><td>All four calculators</td><td></td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr></tbody></table></div></section><section id="workflows"><h2><span class="num">9</span>Workflows</h2>
+    <article class="wf">
+      <h3>WF-01 — Purchase to Stock</h3>
+      <dl class="kv">
+        <dt>Actors</dt><dd>Purchase Manager, Branch Administrator (approval)</dd>
+        <dt>Trigger</dt><dd>A supplier invoice arrives with the goods</dd>
+        <dt>Preconditions</dt><dd>Supplier exists and has a manufacturer assigned; products exist on the branch list</dd>
+      </dl>
+      <ol class="steps"><li>Buyer selects the supplier. Their manufacturer decides which products may be added.</li><li>Lines are entered — quantity, bonus, unit, TP%, discounts. A gift line carries quantity 0 and a bonus.</li><li>The server ignores any client-supplied price and snapshots price from the product master.</li><li>Line totals are computed (CALC-02 / CALC-03), then the invoice roll-up (CALC-05).</li><li>Saved as Draft, submitted as Pending, or created directly Approved by a user holding Approve.</li><li>On approval: header allocations reach the lines (CALC-06), gifts take their share (CALC-07), cost per piece is derived (CALC-08) and checked against MRP (CALC-09).</li><li>A batch row and an inbound movement are written; the batch carries COST_PER_PCS.</li><li>The invoice becomes payable and appears in V_PURCHASE_PAYABLE.</li></ol>
+      <dl class="kv">
+        <dt>Failure</dt><dd>Validation refuses with a message naming the fix. Nothing is written; the transaction rolls back.</dd>
+        <dt>Postconditions</dt><dd>Stock on hand rises; supplier payable rises; the invoice is locked against editing.</dd>
+      </dl>
+      <div class="mer"><pre class="mermaid">flowchart TD
+  A[Select supplier] --&gt; B[Add lines]
+  B --&gt; C{Line shape valid?}
+  C --&gt;|No| C1[Refuse: name the fix]
+  C --&gt;|Yes| D{Products from this maker?}
+  D --&gt;|No, and not a gift| D1[Refuse: PRODUCT_NOT_FROM_SUPPLIER]
+  D --&gt;|Yes| E[Compute line totals and invoice]
+  E --&gt; F{Status}
+  F --&gt;|Draft| G[Editable]
+  F --&gt;|Pending| H[Await approval]
+  F --&gt;|Approved| I[Receive stock]
+  H --&gt; I
+  I --&gt; J{Cost per piece &lt;= MRP?}
+  J --&gt;|No| J1[Refuse at approval]
+  J --&gt;|Yes| K[Write batch + movement]
+  K --&gt; L[Payable]</pre></div>
+    </article>
+    <article class="wf">
+      <h3>WF-02 — Sale to Margin</h3>
+      <dl class="kv">
+        <dt>Actors</dt><dd>Pharmacist, Sales Manager</dd>
+        <dt>Trigger</dt><dd>A customer presents items at the counter</dd>
+        <dt>Preconditions</dt><dd>Stock on hand exists in at least one batch</dd>
+      </dl>
+      <ol class="steps"><li>Items are added to a cart, by scan or search.</li><li>Unit price derives from MRP and the sales percentage (CALC-10).</li><li>On checkout, stock is issued FEFO — earliest expiry first.</li><li>Each outbound movement copies the batch's COST_PER_PCS, fixing the cost of that sale.</li><li>Revenue less that cost is gross profit (CALC-11).</li></ol>
+      <dl class="kv">
+        <dt>Failure</dt><dd>Insufficient stock, or no permission to sell, refuses the checkout. The cart is preserved.</dd>
+        <dt>Postconditions</dt><dd>Stock falls; revenue and receivable rise; margin is fixed and cannot be changed by re-pricing.</dd>
+      </dl>
+      <div class="mer"><pre class="mermaid">flowchart TD
+  A[Add to cart] --&gt; B[Price from MRP and sales %]
+  B --&gt; C{Charge}
+  C --&gt;|No stock| C1[Refuse]
+  C --&gt;|OK| D[Issue FEFO across batches]
+  D --&gt; E[Copy batch cost onto each movement]
+  E --&gt; F[Invoice raised]
+  F --&gt; G[Margin = revenue - snapshot cost]</pre></div>
+    </article>
+    <article class="wf">
+      <h3>WF-03 — Supplier Settlement</h3>
+      <dl class="kv">
+        <dt>Actors</dt><dd>Accounts</dd>
+        <dt>Trigger</dt><dd>A payment is due or a supplier is paid</dd>
+        <dt>Preconditions</dt><dd>An approved purchase exists</dd>
+      </dl>
+      <ol class="steps"><li>Payment is recorded against one or more invoices, or held as an unallocated advance.</li><li>V_SUPPLIER_PAYMENT_LINE splits it into INVOICE and MANUAL sources.</li><li>V_PURCHASE_PAYABLE nets billed against paid and return credit (CALC-13).</li><li>V_SUPPLIER_ACCOUNT_BRANCH aggregates per supplier per branch.</li></ol>
+      <dl class="kv">
+        <dt>Failure</dt><dd>Overpayment beyond tolerance is refused or held as an advance.</dd>
+        <dt>Postconditions</dt><dd>Outstanding falls; advances are carried until recovered.</dd>
+      </dl>
+      <div class="mer"><pre class="mermaid">flowchart LR
+  A[Payment] --&gt; B{Allocated?}
+  B --&gt;|To invoices| C[APPLIED against V_PURCHASE_PAYABLE]
+  B --&gt;|Unallocated| D[ADVANCE_AMOUNT held]
+  C --&gt; E[Outstanding falls]
+  D --&gt; F[Recovered later]</pre></div>
+    </article>
+    <article class="wf">
+      <h3>WF-04 — Inter-Branch Requisition</h3>
+      <dl class="kv">
+        <dt>Actors</dt><dd>Requesting branch, approving branch</dd>
+        <dt>Trigger</dt><dd>A branch is short of stock another holds</dd>
+        <dt>Preconditions</dt><dd>Both branches belong to the same organisation</dd>
+      </dl>
+      <ol class="steps"><li>A requisition is raised in DRAFT and lines are added.</li><li>It is SUBMITTED for approval.</li><li>A user holding Approve on Requisition approves or rejects it.</li><li>An approved requisition is CONVERTED into the movement that fulfils it.</li></ol>
+      <dl class="kv">
+        <dt>Failure</dt><dd>Rejection sets REJECTED with a reason; the stock never moves.</dd>
+        <dt>Postconditions</dt><dd>CONVERTED requisitions are closed and cannot be edited.</dd>
+      </dl>
+      <div class="mer"><pre class="mermaid">flowchart TD
+  A[DRAFT] --&gt; B[SUBMITTED]
+  B --&gt; C{Approve right?}
+  C --&gt;|No| C1[403 APPROVE_NOT_PERMITTED]
+  C --&gt;|Reject| D[REJECTED]
+  C --&gt;|Approve| E[APPROVED]
+  E --&gt; F[CONVERTED]
+  A --&gt; G[CANCELLED]</pre></div>
+    </article>
+    <article class="wf">
+      <h3>WF-05 — Password Reset</h3>
+      <dl class="kv">
+        <dt>Actors</dt><dd>Platform operator, account holder</dd>
+        <dt>Trigger</dt><dd>A user cannot sign in</dd>
+        <dt>Preconditions</dt><dd>The caller is ROLE01 and in the platform organisation</dd>
+      </dl>
+      <ol class="steps"><li>The operator finds the account. Credential state is shown; the password is not, and cannot be.</li><li>Reset is confirmed against the account's name, role and branch.</li><li>A 16-character temporary password is generated (CALC-15), hashed, and shown exactly once.</li><li>MUST_CHANGE_PASSWORD is set with an expiry; an audit row is written in its own transaction.</li><li>The account can then reach only self-read and self-change until it sets its own password.</li></ol>
+      <dl class="kv">
+        <dt>Failure</dt><dd>Self-reset and operator-to-operator reset are refused, and the refusal is recorded.</dd>
+        <dt>Postconditions</dt><dd>The old password stops working immediately; the trail records who did what, when and from where.</dd>
+      </dl>
+      <div class="mer"><pre class="mermaid">flowchart TD
+  A[Find account] --&gt; B{Resettable?}
+  B --&gt;|Self or peer operator| B1[Refuse + record]
+  B --&gt;|Yes| C[Generate temporary password]
+  C --&gt; D[Store hash only; show once]
+  D --&gt; E[Set MUST_CHANGE + expiry]
+  E --&gt; F[Audit row, own transaction]
+  F --&gt; G[Account limited to self-change]
+  G --&gt; H[User sets own password]
+  H --&gt; I[Flag cleared]</pre></div>
+    </article>
+    <article class="wf">
+      <h3>WF-06 — Tenant Onboarding</h3>
+      <dl class="kv">
+        <dt>Actors</dt><dd>Applicant, platform operator</dd>
+        <dt>Trigger</dt><dd>A pharmacy applies to use the platform</dd>
+        <dt>Preconditions</dt><dd>None — the sign-up endpoint is public</dd>
+      </dl>
+      <ol class="steps"><li>A pharmacy applies. Nothing is provisioned; one row enters a queue.</li><li>A platform operator reviews and approves with a plan, term and permission template.</li><li>Tenant, branch, roles and permissions are provisioned in one transaction.</li><li>The subscription sets an expiry; the tenancy filter admits or refuses on it thereafter.</li></ol>
+      <dl class="kv">
+        <dt>Failure</dt><dd>Rejection leaves the application closed and nothing provisioned.</dd>
+        <dt>Postconditions</dt><dd>The pharmacy can trade until expiry plus grace.</dd>
+      </dl>
+      <div class="mer"><pre class="mermaid">flowchart TD
+  A[Public sign-up] --&gt; B[PENDING queue]
+  B --&gt; C{Operator decision}
+  C --&gt;|Reject| D[REJECTED]
+  C --&gt;|Approve| E[Provision tenant, branch, roles, permissions]
+  E --&gt; F[ACTIVE with expiry]
+  F --&gt; G{Past expiry?}
+  G --&gt;|Within grace| H[Trading, warned]
+  G --&gt;|Past grace| I[EXPIRED - refused]</pre></div>
+    </article></section><section id="calcs"><h2><span class="num">10</span>Business Calculations</h2><p class="lead">Every formula below is quoted from the class that computes it. Where a live row existed the worked example was cross-checked against it.</p><h3>Trace: frontend to database</h3>
+   <p>The costing chain is the spine of the system. One value — cost per piece — is produced on approval and read by
+   valuation, margin and every profit report thereafter.</p>
+   <div class="tw"><table><thead><tr><th>Tier</th><th>Component</th><th>Responsibility</th></tr></thead><tbody><tr><td>Frontend</td><td class="mono">Purchase.jsx</td><td>Collects qty, bonus, unit, TP% and discounts. Computes a preview total for display only — the server recomputes and overwrites.</td></tr><tr><td>API</td><td class="mono">POST /api/purchases</td><td>PurchaseRequest rejects any client-supplied calculated field (mrpPrice, mnpPrice, totalPrice) with UNKNOWN_FIELD.</td></tr><tr><td>Service</td><td class="mono">PurchaseServiceImpl.buildLines</td><td>Snapshots price from the product, then calls PurchaseCalculator.calculateLineTotal.</td></tr><tr><td>Service</td><td class="mono">PurchaseServiceImpl.applyTotals</td><td>Calls PurchaseCalculator.calculateInvoice for the header.</td></tr><tr><td>Service</td><td class="mono">StockPostingServiceImpl.receive</td><td>On approval: netLineTotal → CostAllocation → unitCost → batch.COST_PER_PCS.</td></tr><tr><td>Database</td><td class="mono">POS_STOCK_BATCH / POS_STOCK_MOVEMENT</td><td>COST_PER_PCS is persisted per batch and copied onto every movement.</td></tr><tr><td>Reporting</td><td class="mono">Dashboard / grid reports</td><td>COGS = SUM(movement.QTY_PCS × movement.COST_PER_PCS); margin = revenue − COGS.</td></tr></tbody></table></div>
+   
+  <article class="calc" id="C-01">
+    <h3><span class="cid">C-01</span>Product derived pricing</h3>
+    <p class="src">Source · <code>ProductPricingCalculator</code></p>
+    <pre class="formula">TP_PRICE  = ROUND(MRP − (MRP × CONVERSION_RATE / 100), 2)
+IGTA      = ROUND(TP_PRICE × VAT_PCT / 100, 2)
+BUY_PRICE = ROUND(TP_PRICE + (TP_PRICE × VAT_PCT / 100), 2)</pre>
+    <p class="note">CONVERSION_RATE defaults to 25.037; VAT_PCT defaults to 17.40. Nulls are treated as zero (NVL).</p>
+    
+    
+      <div class="ex">
+        <div class="ex-h">Worked example</div>
+        <p class="ex-given"><b>Given</b> MRP = 250.00, CONVERSION_RATE = 25.037, VAT_PCT = 17.40</p>
+        <pre class="formula">TP_PRICE  = 250.00 − (250.00 × 25.037 / 100) = 250.00 − 62.5925 = 187.4075 → 187.41
+IGTA      = 187.41 × 17.40 / 100 = 32.609... → 32.61
+BUY_PRICE = 187.41 + 32.61 = 220.02</pre>
+        <p class="ex-res"><b>Result</b> TP 187.41 · IGTA 32.61 · Buy 220.02 — matching product 3 (Napa 500mg) in the live master.</p>
+      </div>
+  </article>
+  <article class="calc" id="C-02">
+    <h3><span class="cid">C-02</span>Purchase line total — MNP basis</h3>
+    <p class="src">Source · <code>PurchaseCalculator.calculateLineTotal</code></p>
+    <pre class="formula">base      = ROUND(qty × (tp + igta) − (qty × tp × tpPct / 100), 2)
+afterDisc = ROUND(base − base × discountPct / 100, 2)
+total     = afterDisc − (qty × flatDiscount)</pre>
+    
+    <p class="note">The flat discount is applied AFTER the final rounding on this branch, and is multiplied by quantity. This asymmetry with the MRP branch is deliberate and is a faithful port of the legacy APEX expression; totals must keep matching the previous system.</p>
+    
+      <div class="ex">
+        <div class="ex-h">Worked example</div>
+        <p class="ex-given"><b>Given</b> qty = 10, tp = 187.41, igta = 32.61, tpPct = 3, discountPct = 5, flat = 2</p>
+        <pre class="formula">gross     = 10 × (187.41 + 32.61) = 2,200.20
+tpCut     = 10 × 187.41 × 3 / 100 = 56.223
+base      = ROUND(2,200.20 − 56.223, 2) = 2,143.98
+afterDisc = ROUND(2,143.98 − 107.199, 2) = 2,036.78
+total     = 2,036.78 − (10 × 2) = 2,016.78</pre>
+        <p class="ex-res"><b>Result</b> Line total 2,016.78</p>
+      </div>
+  </article>
+  <article class="calc" id="C-03">
+    <h3><span class="cid">C-03</span>Purchase line total — MRP basis</h3>
+    <p class="src">Source · <code>PurchaseCalculator.calculateLineTotal</code></p>
+    <pre class="formula">total = ROUND(qty × (mrp − (mrp × discountPct / 100 + flatDiscount)), 2)</pre>
+    
+    <p class="note">Here the flat discount is per unit and is applied BEFORE rounding. TP% is not used at all on this basis.</p>
+    
+      <div class="ex">
+        <div class="ex-h">Worked example</div>
+        <p class="ex-given"><b>Given</b> qty = 100, mrp = 250.00, discountPct = 0, flat = 0</p>
+        <pre class="formula">perUnit = 250.00 − (0 + 0) = 250.00
+total = ROUND(100 × 250.00, 2) = 25,000.00</pre>
+        <p class="ex-res"><b>Result</b> Line total 25,000.00</p>
+      </div>
+  </article>
+  <article class="calc" id="C-04">
+    <h3><span class="cid">C-04</span>Line gross (for TOTAL_DISCOUNT)</h3>
+    <p class="src">Source · <code>PurchaseCalculator.calculateLineGross</code></p>
+    <pre class="formula">gross = calculateLineTotal(type, qty, tp, igta, mrp, tpPct = 0, discountPct = 0, flatDiscount = 0)</pre>
+    
+    <p class="note">tpPct is zeroed along with the two discounts. Previously it was passed through, so the trade-price cut was treated as part of list price and never appeared in TOTAL_DISCOUNT — on invoice PU260900007 a 3% TP cut worth 5.62 vanished and the invoice reported 21.46 given away where the supplier had actually given 27.08.</p>
+    
+      <div class="ex">
+        <div class="ex-h">Worked example</div>
+        <p class="ex-given"><b>Given</b> The C-02 line</p>
+        <pre class="formula">gross = 10 × (187.41 + 32.61) = 2,200.20
+line discount = 2,200.20 − 2,016.78 = 183.42</pre>
+        <p class="ex-res"><b>Result</b> 183.42 reported as given away on that line (56.22 TP + 107.20 pct + 20.00 flat)</p>
+      </div>
+  </article>
+  <article class="calc" id="C-05">
+    <h3><span class="cid">C-05</span>Purchase invoice roll-up</h3>
+    <p class="src">Source · <code>PurchaseCalculator.calculateInvoice</code></p>
+    <pre class="formula">total         = ROUND(Σ line.TOTAL_PRICE, 2)
+invoiceDisAmt = ROUND(total × invoiceDisPct / 100, 2)
+payable       = ROUND(total − invoiceDisAmt + tax + serviceCharge − cashback, 2)
+totalDiscount = ROUND(MAX(Σ gross − total, 0) + invoiceDisAmt, 2)
+dueAmount     = ROUND(payable − givenAmount, 2)</pre>
+    
+    <p class="note">Cashback is subtracted AFTER tax and service charge: it is money handed back on the whole bill, not a reduction in the price of the goods before tax was computed. It is kept separate from invoiceDisAmt because a discount is a price and a cashback is an incentive — different events with different lives. A negative dueAmount means the supplier was overpaid.</p>
+    
+      <div class="ex">
+        <div class="ex-h">Worked example</div>
+        <p class="ex-given"><b>Given</b> lines total 2,283.33, invoiceDisPct 0, tax 0, service 0, cashback 1,000, given 0</p>
+        <pre class="formula">invoiceDisAmt = 0.00
+payable = 2,283.33 − 0 + 0 + 0 − 1,000.00 = 1,283.33
+dueAmount = 1,283.33 − 0 = 1,283.33</pre>
+        <p class="ex-res"><b>Result</b> AMOUNT_TOBE_PAID 1,283.33 — matching live invoice PU260900027.</p>
+      </div>
+  </article>
+  <article class="calc" id="C-06">
+    <h3><span class="cid">C-06</span>Net line value after header allocations</h3>
+    <p class="src">Source · <code>StockPostingServiceImpl.netLineTotal</code></p>
+    <pre class="formula">net = line.TOTAL_PRICE
+if invoiceDisPct &gt; 0:  net −= ROUND(net × invoiceDisPct / 100, 2)
+if cashback &gt; 0 and invoiceTotal &gt; 0:
+     weight = line.TOTAL_PRICE / invoiceTotal   (scale 10)
+     net   −= ROUND(cashback × weight, 2)
+net = MAX(net, 0)</pre>
+    
+    <p class="note">A header-level reduction must reach the goods or the shelf is valued at a price nobody paid. The discount is a percentage so each line's share falls straight out of it; cashback is an amount, so the share is the line's weight in the invoice. The zero-total guard prevents a division by zero turning an incentive into an exception on approval. The floor at zero prevents a cashback that swallowed a line from putting negative cost into a batch.</p>
+    
+      <div class="ex">
+        <div class="ex-h">Worked example</div>
+        <p class="ex-given"><b>Given</b> Line 2,083.33 on invoice PU260900027 (total 2,283.33, cashback 1,000)</p>
+        <pre class="formula">weight = 2,083.33 / 2,283.33 = 0.9124...
+share  = ROUND(1,000 × 0.9124, 2) = 912.41
+net    = 2,083.33 − 912.41 = 1,170.92</pre>
+        <p class="ex-res"><b>Result</b> 1,170.92 before gift allocation</p>
+      </div>
+  </article>
+  <article class="calc" id="C-07">
+    <h3><span class="cid">C-07</span>Gift cost allocation</h3>
+    <p class="src">Source · <code>StockPostingServiceImpl.CostAllocation</code></p>
+    <pre class="formula">if no line has LINE_KIND = 'GIFT':  netFor(line) = netLineTotal(line)   (identity)
+otherwise:
+     invoiceNet    = Σ netLineTotal(line)
+     sellingValue  = line.MRP_PRICE × (line.QUANTITY + line.BONUS_QTY)
+     netFor(line)  = invoiceNet × sellingValue / Σ sellingValue</pre>
+    
+    <p class="note">A gift line has no money of its own. Left at zero it would report an infinite margin, so the invoice's cost is spread across every line by what each is worth at retail. Invoices without a gift keep the identity allocation and are unchanged.</p>
+    
+      <div class="ex">
+        <div class="ex-h">Worked example</div>
+        <p class="ex-given"><b>Given</b> PU260900027: bought 100 Napa (MRP 20.8333/pc) + 10 bonus; 50 Ace (MRP 4.00); gift 20 Sergel (MRP 12.3333). Cashback 1,000.</p>
+        <pre class="formula">invoiceNet = 2,283.33 − 1,000 = 1,283.33
+sellingValue Napa  = 20.8333 × 110 = 2,291.66
+sellingValue Ace   = 4.0000 × 50  =   200.00
+sellingValue Sergel= 12.3333 × 20 =   246.67
+Σ sellingValue = 2,738.33
+Napa net   = 1,283.33 × 2,291.66 / 2,738.33 = 1,073.99
+Sergel net = 1,283.33 ×   246.67 / 2,738.33 =   115.60</pre>
+        <p class="ex-res"><b>Result</b> The gift carries 115.60 of real cost rather than zero</p>
+      </div>
+  </article>
+  <article class="calc" id="C-08">
+    <h3><span class="cid">C-08</span>Received pieces and cost per piece</h3>
+    <p class="src">Source · <code>StockPostingServiceImpl.receivedPcs / unitCost</code></p>
+    <pre class="formula">receivedPcs  = (QUANTITY + BONUS_QTY) × COALESCE(NO_OF_PCS, 1)
+COST_PER_PCS = netFor(line) / receivedPcs</pre>
+    
+    <p class="note">The bonus is in the divisor, not the numerator. That is the whole mechanism by which free goods lower the cost of a batch: the same money is spread over more pieces. receivedPcs is deliberately kept separate from the shared toPcs() helper, which two outbound call sites use and which must NOT include the bonus.</p>
+    
+      <div class="ex">
+        <div class="ex-h">Worked example</div>
+        <p class="ex-given"><b>Given</b> Napa line from C-07: net 1,073.99, bought 100 + 10 bonus, NO_OF_PCS = 1 (PCS basis)</p>
+        <pre class="formula">receivedPcs = (100 + 10) × 1 = 110
+COST_PER_PCS = 1,073.99 / 110 = 9.763545...</pre>
+        <p class="ex-res"><b>Result</b> 9.763636 stored on the batch — verified against the live POS_STOCK_BATCH row</p>
+      </div>
+  </article>
+  <article class="calc" id="C-09">
+    <h3><span class="cid">C-09</span>Cost guard on receipt</h3>
+    <p class="src">Source · <code>StockPostingServiceImpl.requireCostBelowMrp</code></p>
+    <pre class="formula">refuse when COST_PER_PCS &gt; MRP per piece</pre>
+    
+    <p class="note">A batch costing more than it can be sold for is a data-entry error caught at approval rather than a loss discovered at the till. The message states the multiple.</p>
+    
+      <div class="ex">
+        <div class="ex-h">Worked example</div>
+        <p class="ex-given"><b>Given</b> cost 32.00/pc against MRP 20.83/pc</p>
+        <pre class="formula">32.00 / 20.83 = 1.5</pre>
+        <p class="ex-res"><b>Result</b> Refused: cost is 1.5× the MRP</p>
+      </div>
+  </article>
+  <article class="calc" id="C-10">
+    <h3><span class="cid">C-10</span>Sales price from MRP</h3>
+    <p class="src">Source · <code>SalesPriceCalculator</code></p>
+    <pre class="formula">Unit Sales Price = ROUND(MRP − (MRP × SalesPct / 100), 2)
+Discount Amount  = MRP − Unit Sales Price
+percentForPrice  = (MRP − target) / MRP × 100</pre>
+    
+    
+    
+      <div class="ex">
+        <div class="ex-h">Worked example</div>
+        <p class="ex-given"><b>Given</b> MRP 250.00, SalesPct 8</p>
+        <pre class="formula">250.00 × 8 / 100 = 20.00
+250.00 − 20.00 = 230.00</pre>
+        <p class="ex-res"><b>Result</b> Sells at 230.00, discount 20.00</p>
+      </div>
+  </article>
+  <article class="calc" id="C-11">
+    <h3><span class="cid">C-11</span>COGS and gross profit</h3>
+    <p class="src">Source · <code>DashboardAnalyticsRepository / AiAnalyticsRepository</code></p>
+    <pre class="formula">COGS         = Σ (movement.QTY_PCS × COALESCE(movement.COST_PER_PCS, 0))
+Revenue      = Σ sale line value
+Gross Profit = Revenue − COGS
+Margin %     = Gross Profit / Revenue × 100</pre>
+    
+    <p class="note">COGS reads the movement's own COST_PER_PCS — the cost of the specific batch that went out, snapshotted at the moment of sale — not the product's current cost. Re-pricing a product therefore cannot retrospectively change last month's profit.</p>
+    
+      <div class="ex">
+        <div class="ex-h">Worked example</div>
+        <p class="ex-given"><b>Given</b> 60 pieces issued from the C-08 batch at 9.7636, sold for 20.00 each</p>
+        <pre class="formula">COGS = 60 × 9.7636 = 585.82
+Revenue = 60 × 20.00 = 1,200.00
+Profit = 614.18</pre>
+        <p class="ex-res"><b>Result</b> Margin 51.2%</p>
+      </div>
+  </article>
+  <article class="calc" id="C-12">
+    <h3><span class="cid">C-12</span>Stock valuation</h3>
+    <p class="src">Source · <code>DashboardAnalyticsRepository.stockValue</code></p>
+    <pre class="formula">Stock Value = Σ (batch.QTY_PCS × COALESCE(batch.COST_PER_PCS, 0))</pre>
+    
+    <p class="note">Valued at cost, never at MRP, and per remaining batch quantity — so an aged batch bought cheaply is not revalued upward by a later price rise.</p>
+    
+      <div class="ex">
+        <div class="ex-h">Worked example</div>
+        <p class="ex-given"><b>Given</b> 110 pcs at 9.7636 and 50 pcs at 1.8746</p>
+        <pre class="formula">110 × 9.7636 = 1,074.00
+50 × 1.8746 = 93.73</pre>
+        <p class="ex-res"><b>Result</b> 1,167.73</p>
+      </div>
+  </article>
+  <article class="calc" id="C-13">
+    <h3><span class="cid">C-13</span>Supplier payable and ageing</h3>
+    <p class="src">Source · <code>V_PURCHASE_PAYABLE</code></p>
+    <pre class="formula">BILLED   = COALESCE(AMOUNT_TOBE_PAID, 0)
+DUE      = BILLED − PAID_AT_INVOICE − PAID_LATER − RETURN_CREDIT
+AGE_DAYS = CURRENT_DATE − TRANSACTION_DATE</pre>
+    
+    <p class="note">PAID_AT_INVOICE is payment lines with SOURCE='INVOICE'; PAID_LATER is SOURCE='MANUAL'. RETURN_CREDIT counts only approved purchase returns whose PAYMENT_TYPE is 'ADJUSTMENT' — see Gap G-05. Outstanding is deliberately NOT date-filtered: it is a position as at today, and narrowing it to a period would drop older unpaid bills and report a smaller debt than exists.</p>
+    
+      <div class="ex">
+        <div class="ex-h">Worked example</div>
+        <p class="ex-given"><b>Given</b> Billed 1,283.33; paid 500 at invoice; return credit 0</p>
+        <pre class="formula">DUE = 1,283.33 − 500 − 0 − 0 = 783.33</pre>
+        <p class="ex-res"><b>Result</b> 783.33 outstanding</p>
+      </div>
+  </article>
+  <article class="calc" id="C-14">
+    <h3><span class="cid">C-14</span>Supplier benefit reporting</h3>
+    <p class="src">Source · <code>SalesPurchaseReportRepository.supplierBenefit / ReportGridServiceImpl</code></p>
+    <pre class="formula">bonusPcs  = Σ (BONUS_QTY × COALESCE(NO_OF_PCS,1))  where LINE_KIND = 'PURCHASE'
+giftPcs   = Σ (BONUS_QTY × COALESCE(NO_OF_PCS,1))  where LINE_KIND = 'GIFT'
+giftValue = Σ (BONUS_QTY × MRP_PRICE)              where LINE_KIND = 'GIFT'
+benefit   = cashback + giftValue
+benefit % = benefit / (billed + cashback) × 100</pre>
+    
+    <p class="note">Quantities are converted to pieces because BONUS_QTY is held in each line's own sales unit — adding 10 boxes to 10 strips gives 20 of nothing. Money is NOT converted, because MRP_PRICE is also stored per sales unit and already matches. The bonus is never valued: it is already banked as a lower cost per piece (C-08), and pricing it again would count one benefit twice. The ratio divides by the gross bill because AMOUNT_TOBE_PAID has already had the cashback removed.</p>
+    
+      <div class="ex">
+        <div class="ex-h">Worked example</div>
+        <p class="ex-given"><b>Given</b> cashback 1,000; gift 20 boxes of 12 at MRP 148; billed 46,283.33</p>
+        <pre class="formula">giftPcs = 20 × 12 = 240
+giftValue = 20 × 148 = 2,960.00
+benefit = 3,960.00
+gross = 47,283.33</pre>
+        <p class="ex-res"><b>Result</b> 8.4% benefit</p>
+      </div>
+  </article>
+  <article class="calc" id="C-15">
+    <h3><span class="cid">C-15</span>Temporary password strength</h3>
+    <p class="src">Source · <code>TemporaryPassword</code></p>
+    <pre class="formula">16 characters from a 25-symbol alphabet ≈ log2(25^16) ≈ 74.3 bits</pre>
+    
+    <p class="note">The alphabet excludes characters that are ambiguous when read aloud (O/0, I/l/1, S/5, B/8, Z/2) because the password is delivered by voice; length pays back the lost entropy. Uses SecureRandom.nextInt(bound), not modulo, which would bias toward the low end of the alphabet.</p>
+    
+      <div class="ex">
+        <div class="ex-h">Worked example</div>
+        <p class="ex-given"><b>Given</b> —</p>
+        <pre class="formula">25^16 ≈ 2.33 × 10^22</pre>
+        <p class="ex-res"><b>Result</b> ≈ 74 bits, formatted ABCD-EFGH-JKMN-PQRT</p>
+      </div>
+  </article></section><section id="frs"><h2><span class="num">11</span>Functional Requirements</h2>
+    <article class="fr" id="FR-001">
+      <h3><span class="cid">FR-001</span>Record a supplier purchase</h3>
+      <p class="meta">M-04 · Purchase Manager · <span class="chip c-ok">IMPLEMENTED</span></p>
+      <p class="req">The system shall let a buyer record a supplier invoice, including free bonus units, free gift products and invoice-level cashback, and shall compute every derived money value on the server.</p>
+      <dl class="kv">
+        <dt>Purpose</dt><dd>The purchase invoice is where cost enters the business. Everything downstream — valuation, margin, payables — is derived from it.</dd>
+        <dt>Preconditions</dt><dd>A supplier with a manufacturer assigned; products on the branch list.</dd>
+        <dt>Inputs</dt><dd>Supplier, date, costing basis, optional challan; per line: product, quantity, bonus, unit, TP%, discounts. Optionally a gift line and a cashback amount.</dd>
+        <dt>Rules</dt><dd>BR-001 … BR-007</dd>
+        <dt>Outputs</dt><dd>A saved invoice with line totals, invoice totals and payable.</dd>
+        <dt>Exceptions</dt><dd>Client-supplied calculated fields are refused (UNKNOWN_FIELD). Products from another maker are refused unless the line is a gift.</dd>
+        <dt>Postconditions</dt><dd>Draft or Pending: nothing moves. Approved: stock received, invoice locked, payable raised.</dd>
+        <dt>Evidence</dt><dd class="mono ev">Purchase.jsx · POST /api/purchases · PurchaseServiceImpl · PurchaseCalculator · POS_TRANSACTION_MST/DTL</dd>
+      </dl>
+    </article>
+    <article class="fr" id="FR-002">
+      <h3><span class="cid">FR-002</span>Receive stock at a correct cost per piece</h3>
+      <p class="meta">M-07 · System (on approval) · <span class="chip c-ok">IMPLEMENTED</span></p>
+      <p class="req">On approval the system shall derive a cost per piece for every received line, spreading invoice discount, cashback and gift value, and shall refuse a cost above MRP.</p>
+      <dl class="kv">
+        <dt>Purpose</dt><dd>Valuation and margin are only as good as this figure.</dd>
+        <dt>Preconditions</dt><dd>An approved purchase.</dd>
+        <dt>Inputs</dt><dd>The invoice and its lines.</dd>
+        <dt>Rules</dt><dd>BR-007, BR-009</dd>
+        <dt>Outputs</dt><dd>One batch per line with COST_PER_PCS; one inbound movement.</dd>
+        <dt>Exceptions</dt><dd>A cost above MRP per piece refuses the approval, stating the multiple.</dd>
+        <dt>Postconditions</dt><dd>Stock on hand rises; the batch cost is fixed for everything issued from it.</dd>
+        <dt>Evidence</dt><dd class="mono ev">StockPostingServiceImpl (netLineTotal, CostAllocation, unitCost) · POS_STOCK_BATCH · POS_STOCK_MOVEMENT</dd>
+      </dl>
+    </article>
+    <article class="fr" id="FR-003">
+      <h3><span class="cid">FR-003</span>Sell stock and fix its margin</h3>
+      <p class="meta">M-08 · Pharmacist · <span class="chip c-ok">IMPLEMENTED</span></p>
+      <p class="req">The system shall issue stock first-expiry-first-out and record the issuing batch's cost on each movement.</p>
+      <dl class="kv">
+        <dt>Purpose</dt><dd>Margin must reflect what the goods actually cost, and must not change when the product is re-priced.</dd>
+        <dt>Preconditions</dt><dd>Stock on hand.</dd>
+        <dt>Inputs</dt><dd>Cart lines, customer, payment.</dd>
+        <dt>Rules</dt><dd>BR-008, BR-009</dd>
+        <dt>Outputs</dt><dd>A sales invoice and outbound movements carrying the cost snapshot.</dd>
+        <dt>Exceptions</dt><dd>Insufficient stock refuses the checkout.</dd>
+        <dt>Postconditions</dt><dd>Stock falls; margin is fixed.</dd>
+        <dt>Evidence</dt><dd class="mono ev">QuickSales.jsx · /api/v1/pos · PosServiceImpl · SalesServiceImpl · StockPostingServiceImpl</dd>
+      </dl>
+    </article>
+    <article class="fr" id="FR-004">
+      <h3><span class="cid">FR-004</span>Keep product history when a product changes</h3>
+      <p class="meta">M-03 · Product administrator · <span class="chip c-part">PARTIALLY IMPLEMENTED</span> <span class="note">The bulk import path still updates in place — GAP-06.</span></p>
+      <p class="req">An edit to a product shall create a new version and retire the previous one, leaving past transactions pointing at what was actually traded.</p>
+      <dl class="kv">
+        <dt>Purpose</dt><dd>A price or pack change must not rewrite the meaning of last month's invoices.</dd>
+        <dt>Preconditions</dt><dd>A live (not superseded) product.</dd>
+        <dt>Inputs</dt><dd>The changed product fields.</dd>
+        <dt>Rules</dt><dd>BR-010, BR-011, BR-012</dd>
+        <dt>Outputs</dt><dd>A new version; the previous row retired and inactive.</dd>
+        <dt>Exceptions</dt><dd>Editing a superseded version is refused.</dd>
+        <dt>Postconditions</dt><dd>Pickers show only the live version; history is intact.</dd>
+        <dt>Evidence</dt><dd class="mono ev">ProductMaster.jsx · /api/products · ProductServiceImpl · PID_ROOT_PRODUCT / VERSION_NO / SUPERSEDED_BY</dd>
+      </dl>
+    </article>
+    <article class="fr" id="FR-005">
+      <h3><span class="cid">FR-005</span>Administer a forgotten password safely</h3>
+      <p class="meta">M-02 · Platform operator · <span class="chip c-ok">IMPLEMENTED</span></p>
+      <p class="req">The system shall let a platform operator issue a temporary password, shall never display a stored password, shall force the holder to replace it, and shall record every reset and refusal.</p>
+      <dl class="kv">
+        <dt>Purpose</dt><dd>Support must be able to restore access without anyone learning a password.</dd>
+        <dt>Preconditions</dt><dd>Caller is ROLE01 and in the platform organisation.</dd>
+        <dt>Inputs</dt><dd>The target account.</dd>
+        <dt>Rules</dt><dd>BR-018 … BR-021</dd>
+        <dt>Outputs</dt><dd>A 16-character temporary password shown once; an audit row.</dd>
+        <dt>Exceptions</dt><dd>Self-reset and peer-operator reset refused and recorded.</dd>
+        <dt>Postconditions</dt><dd>The account can do nothing but set its own password until it does.</dd>
+        <dt>Evidence</dt><dd class="mono ev">PasswordAdmin.jsx · /api/admin/passwords · PasswordAdminService · ForcedPasswordChangeFilter · ACL_PASSWORD_RESET_AUDIT</dd>
+      </dl>
+    </article>
+    <article class="fr" id="FR-006">
+      <h3><span class="cid">FR-006</span>Report what suppliers gave beyond the price</h3>
+      <p class="meta">M-11 · Buyer, management · <span class="chip c-ok">IMPLEMENTED</span></p>
+      <p class="req">The system shall report bonus units, gift units, gift value and cashback per supplier for a period, counting quantities in pieces and never valuing a bonus.</p>
+      <dl class="kv">
+        <dt>Purpose</dt><dd>Two suppliers may quote the same rate; what they give back is otherwise invisible.</dd>
+        <dt>Preconditions</dt><dd>Approved purchases in the period.</dd>
+        <dt>Inputs</dt><dd>Date range, branch, search.</dd>
+        <dt>Rules</dt><dd>BR-025, BR-027</dd>
+        <dt>Outputs</dt><dd>Supplier, invoices, bonus pieces, gift pieces, gift value, cashback, billed, benefit %.</dd>
+        <dt>Exceptions</dt><dd>A period with nothing returns an empty grid, not an error.</dd>
+        <dt>Postconditions</dt><dd>None — read only.</dd>
+        <dt>Evidence</dt><dd class="mono ev">Reports.jsx · GET /api/reports/supplier-benefit · ReportGridServiceImpl · SalesPurchaseReportRepository</dd>
+      </dl>
+    </article>
+    <article class="fr" id="FR-007">
+      <h3><span class="cid">FR-007</span>Restrict a pharmacy whose subscription has lapsed</h3>
+      <p class="meta">M-12 · System · <span class="chip c-part">PARTIALLY IMPLEMENTED</span> <span class="note">The exemption tests isSuperAdmin() alone, without the organisation half — GAP-05.</span></p>
+      <p class="req">The system shall refuse a tenant past expiry and grace, while keeping an administration path open.</p>
+      <dl class="kv">
+        <dt>Purpose</dt><dd>A commercial control that must not lock the operator out of fixing it.</dd>
+        <dt>Preconditions</dt><dd>A subscription with an expiry.</dd>
+        <dt>Inputs</dt><dd>The tenant of the session.</dd>
+        <dt>Rules</dt><dd>BR-017</dd>
+        <dt>Outputs</dt><dd>A refusal naming the expiry, or normal service.</dd>
+        <dt>Exceptions</dt><dd>SUSPENDED is refused regardless of dates.</dd>
+        <dt>Postconditions</dt><dd>None.</dd>
+        <dt>Evidence</dt><dd class="mono ev">TenantStatusFilter · TenantStatusService · SUB_SUBSCRIPTION</dd>
+      </dl>
+    </article></section><section id="reports"><h2><span class="num">12</span>Reports &amp;amp; KPIs</h2><p class="lead">18 reports run through one grid engine. Each returns its own columns, totals, applied window and supported filters, so one component renders all of them and a filter that would do nothing is never offered.</p><div class="tw"><table><thead><tr><th>Report</th><th>Business question</th><th>Source</th><th>Filters</th></tr></thead><tbody><tr><td>Sales Register</td><td>Every sale in a period</td><td>Approved SL documents</td><td>date, branch, search</td></tr><tr><td>Sales by Product / Customer / Company / Category</td><td>Where revenue comes from</td><td>Sale lines joined to masters</td><td>date, branch, the dimension</td></tr><tr><td>Customer Due</td><td>Who owes money</td><td>Receivable position</td><td>branch, search</td></tr><tr><td>Sales Return Register</td><td>What came back</td><td>Approved SR documents</td><td>date, branch</td></tr><tr><td>Purchase Register</td><td>Every purchase in a period</td><td>Approved PU documents</td><td>date, branch, search</td></tr><tr><td>Purchase by Product / Supplier</td><td>Where spend goes</td><td>Purchase lines</td><td>date, branch, the dimension</td></tr><tr><td>Purchase Return Register</td><td>What went back to suppliers</td><td>Approved PR documents</td><td>date, branch</td></tr><tr><td>Supplier Outstanding</td><td>What is owed, with ageing</td><td>V_SUPPLIER_ACCOUNT_BRANCH</td><td>branch, search — never date</td></tr><tr><td>Supplier Benefit</td><td>Bonus, gift and cashback per supplier</td><td>V_PURCHASE_PAYABLE + lines</td><td>date, branch, search</td></tr><tr><td>Current Stock / Batch Stock / Stock Valuation</td><td>What is held and what it is worth</td><td>Stock ledger</td><td>branch, category, expiry</td></tr><tr><td>Delivery / Collection Register</td><td>Fulfilment and cash in</td><td>Delivery and collection records</td><td>date, branch</td></tr></tbody></table></div>
+   <h3>Dashboard KPIs</h3><div class="tw"><table><thead><tr><th>KPI</th><th>Business meaning</th><th>Calculation</th></tr></thead><tbody><tr><td>Revenue today / this month</td><td>Takings</td><td>Sum of approved sale value in the window</td></tr><tr><td>Margin this month</td><td>Revenue less cost of goods sold</td><td>Revenue − Σ(movement qty × movement cost)</td></tr><tr><td>Purchases this month</td><td>Spend</td><td>Σ AMOUNT_TOBE_PAID on approved purchases</td></tr><tr><td>Supplier benefit this month</td><td>What suppliers gave back</td><td>Cashback + gift value, against gross purchases</td></tr><tr><td>Owed to us / We owe</td><td>Working capital position</td><td>Receivable and payable, with overdue split</td></tr><tr><td>Stock at cost</td><td>Inventory value</td><td>Σ(batch qty × batch cost); expiring within 90 days shown beside it</td></tr></tbody></table></div>
+   <h3>Rules that keep figures honest</h3>
+   <ul class="bul">
+     <li>Totals cover the whole result set, never the page on screen.</li>
+     <li>A truncated result says so, and states how many rows matched.</li>
+     <li>A defaulted date window is declared, with the way to change it.</li>
+     <li>Outstanding balances are never date-filtered — a position as at today is not an activity total.</li>
+     <li>Approved documents only; drafts never reach a financial report.</li>
+   </ul></section><section id="integrations"><h2><span class="num">13</span>Integrations &amp;amp; Notifications</h2><div class="callout"><b>There is no outbound HTTP client anywhere in the backend.</b> No <code>RestTemplate</code>,
+   <code>WebClient</code>, <code>HttpClient</code>, mail sender or third-party SDK was found. The analytics assistant
+   answers from the database, not an external model.</div>
+   <div class="tw"><table><thead><tr><th>System</th><th>Purpose</th><th>Direction</th><th>Auth</th><th>Failure handling</th><th>Status</th></tr></thead><tbody><tr><td>PostgreSQL</td><td>System of record</td><td>Inbound/outbound</td><td>Connection pool</td><td>Hard dependency — the application will not start without it</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td>Local filesystem (UPLOAD_ROOT)</td><td>Product images, avatars, branch logos</td><td>Write and serve</td><td>None</td><td>Upload fails; the rest of the system continues</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td>Analytics assistant (AI Copilot)</td><td>Natural-language questions over the ledger</td><td>Internal only</td><td>Session</td><td>Answered from AiAnalyticsRepository. There is no external model call and no HTTP client anywhere in the backend</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td>Email / SMTP</td><td>Not integrated</td><td>—</td><td>—</td><td>Temporary passwords are handed over out of band today</td><td><span class="chip c-no">NOT IMPLEMENTED</span></td></tr><tr><td>SMS</td><td>Not integrated</td><td>—</td><td>—</td><td>—</td><td><span class="chip c-no">NOT IMPLEMENTED</span></td></tr><tr><td>Payment gateway</td><td>Not integrated</td><td>—</td><td>—</td><td>Payments are recorded, never captured</td><td><span class="chip c-no">NOT IMPLEMENTED</span></td></tr></tbody></table></div>
+   <h3>Notifications</h3><div class="tw"><table><thead><tr><th>Channel</th><th>What it does</th><th>Implementation</th><th>Status</th></tr></thead><tbody><tr><td>Toast (in-page)</td><td>Success, error and warning on every action</td><td>Frontend useToast</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td>In-app notification bell</td><td>Persisted notifications listed in the top bar</td><td>POS_NOTIFICATION · /api/notifications</td><td><span class="chip c-part">PARTIALLY IMPLEMENTED</span></td></tr><tr><td>Low-stock alert</td><td>Pushed every 6 hours by a scheduled job</td><td>CartCleanupScheduler.pushLowStockAlerts</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td>Expiry alert</td><td>Pushed daily at 08:00</td><td>CartCleanupScheduler.pushExpiryAlerts</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td>Stale cart cleanup</td><td>Abandoned carts cancelled every 30 minutes</td><td>CartCleanupScheduler.cancelStaleCarts</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td>Subscription sweep</td><td>Daily at 01:15 — expiry and status maintenance</td><td>SubscriptionServiceImpl</td><td><span class="chip c-ok">IMPLEMENTED</span></td></tr><tr><td>Email / SMS / push</td><td>None</td><td>—</td><td><span class="chip c-no">NOT IMPLEMENTED</span></td></tr></tbody></table></div>
+   <h3>Scheduled jobs</h3>
+   <div class="tw"><table><thead><tr><th>Job</th><th>Cadence</th><th>Purpose</th></tr></thead><tbody><tr><td class="mono">cancelStaleCarts</td><td>every 30 minutes</td><td>Cancels abandoned POS carts</td></tr><tr><td class="mono">pushLowStockAlerts</td><td>every 6 hours</td><td>Notifies on stock below reorder level</td></tr><tr><td class="mono">pushExpiryAlerts</td><td>daily 08:00</td><td>Notifies on approaching expiry</td></tr><tr><td class="mono">Subscription sweep</td><td>daily 01:15</td><td>Expiry and tenancy status maintenance</td></tr></tbody></table></div></section><section id="nfr"><h2><span class="num">14</span>Non-Functional Requirements</h2><div class="tw"><table><thead><tr><th>ID</th><th>Requirement</th><th>Evidence / target</th><th>Status</th><th>Note</th></tr></thead><tbody><tr><td class="mono">NFR-01</td><td>Money precision</td><td>All money BigDecimal, scale 2, HALF_UP. No floating point.</td><td><span class="chip c-ok">IMPLEMENTED</span></td><td>—</td></tr><tr><td class="mono">NFR-02</td><td>Tenant isolation</td><td>No endpoint returns another organisation's data; cross-tenant ids return 404.</td><td><span class="chip c-ok">IMPLEMENTED</span></td><td>—</td></tr><tr><td class="mono">NFR-03</td><td>Auditability</td><td>Credential, subscription and invoice-unlock changes attributable to actor and time.</td><td><span class="chip c-ok">IMPLEMENTED</span></td><td>—</td></tr><tr><td class="mono">NFR-04</td><td>Report responsiveness</td><td>Results truncate with a stated count rather than time out.</td><td><span class="chip c-ok">IMPLEMENTED</span></td><td>—</td></tr><tr><td class="mono">NFR-05</td><td>POS speed</td><td>Line entry without the mouse; Enter walks Product → Qty → TP.</td><td><span class="chip c-ok">IMPLEMENTED</span></td><td>—</td></tr><tr><td class="mono">NFR-06</td><td>Responsive UI</td><td>Breakpoints 767.98 / 1199.98 shared by the two entry screens.</td><td><span class="chip c-ok">IMPLEMENTED</span></td><td>—</td></tr><tr><td class="mono">NFR-07</td><td>Password storage</td><td>One-way hash, BCrypt strength 12.</td><td><span class="chip c-part">PARTIALLY IMPLEMENTED</span></td><td>8 of 25 accounts still hold plaintext — GAP-03</td></tr><tr><td class="mono">NFR-08</td><td>Error handling</td><td>Consistent envelope: success, message, errorCode, timestamp, field map.</td><td><span class="chip c-ok">IMPLEMENTED</span></td><td>—</td></tr><tr><td class="mono">NFR-09</td><td>Automated tests</td><td>24 classes, 297 tests, all passing.</td><td><span class="chip c-ok">IMPLEMENTED</span></td><td>—</td></tr><tr><td class="mono">NFR-10</td><td>Availability / SLA</td><td>Not defined. No health-based restart policy documented.</td><td><span class="chip c-rec">RECOMMENDED</span></td><td>—</td></tr><tr><td class="mono">NFR-11</td><td>Backup and recovery</td><td>No documented RPO or RTO; no rehearsed restore.</td><td><span class="chip c-rec">RECOMMENDED</span></td><td>—</td></tr><tr><td class="mono">NFR-12</td><td>Frontend bundle</td><td>A single ~1.08 MB chunk; no code splitting.</td><td><span class="chip c-rec">RECOMMENDED</span></td><td>—</td></tr><tr><td class="mono">NFR-13</td><td>Accessibility</td><td>Focus rings, ARIA labels, 40–48px touch targets. No formal WCAG audit.</td><td><span class="chip c-part">PARTIALLY IMPLEMENTED</span></td><td>—</td></tr><tr><td class="mono">NFR-14</td><td>Concurrency</td><td>No optimistic lock on POS_TRANSACTION_MST.</td><td><span class="chip c-rec">RECOMMENDED</span></td><td>—</td></tr></tbody></table></div></section><section id="qa"><h2><span class="num">15</span>Validation &amp;amp; QA</h2><div class="tw"><table><thead><tr><th>Layer</th><th>Enforces</th><th>Example</th></tr></thead><tbody><tr><td>Bean validation</td><td>Field shape: required, range, digits</td><td>@DecimalMin on quantity</td></tr><tr><td>Request guard</td><td>Rejecting calculated fields from the client</td><td>UNKNOWN_FIELD on mrpPrice</td></tr><tr><td>Service</td><td>Rules needing context an annotation cannot see</td><td>Per-kind line shape; supplier scoping</td></tr><tr><td>Database</td><td>Invariants that must hold whatever the path</td><td>CK_TRAN_DTL_QUANTITY; NOT NULL; unique indexes</td></tr></tbody></table></div>
+   <div class="callout"><b>Why some rules cannot be annotations.</b> A rule that depends on another field cannot live in a bean annotation, because the annotation cannot see it. Quantity is the worked example: @NotNull refused the gift line it was meant to allow, because LINE_KIND is not visible from the annotation. Presence is now checked per kind in the service.</div>
+   <h3>Test scenarios</h3>
+   <p>297 automated tests across 24 classes pass today.</p>
+   <div class="tw"><table><thead><tr><th>ID</th><th>Area</th><th>Scenario</th><th>Coverage</th></tr></thead><tbody><tr><td class="mono">TS-01</td><td>Purchase</td><td>A product from another manufacturer is refused, including by direct API call</td><td>Covered</td></tr><tr><td class="mono">TS-02</td><td>Purchase</td><td>A gift line with an empty quantity and a bonus is accepted and stored as 0</td><td>Covered</td></tr><tr><td class="mono">TS-03</td><td>Purchase</td><td>100 bought + 10 bonus at net 1,073.99 yields 110 pieces at 9.7636</td><td>Covered</td></tr><tr><td class="mono">TS-04</td><td>Purchase</td><td>Cost above MRP per piece refuses approval</td><td>CostAboveMrpTest</td></tr><tr><td class="mono">TS-05</td><td>Inventory</td><td>Two batches: the earlier expiry is issued first</td><td>Covered</td></tr><tr><td class="mono">TS-06</td><td>Inventory</td><td>Re-pricing a product does not change a recorded margin</td><td>LandedCostTest, ReturnCostTest</td></tr><tr><td class="mono">TS-07</td><td>Product</td><td>An edit creates a version; the superseded one cannot be edited</td><td>ProductServiceImplTest</td></tr><tr><td class="mono">TS-08</td><td>Product</td><td>Two products may share a SKU; a barcode may not repeat</td><td>Covered (V72)</td></tr><tr><td class="mono">TS-09</td><td>Security</td><td>No password or hash appears in any payload</td><td>Covered</td></tr><tr><td class="mono">TS-10</td><td>Security</td><td>An account with a temporary password is refused every other endpoint</td><td>Covered</td></tr><tr><td class="mono">TS-11</td><td>Security</td><td>A non-platform ROLE01 is refused the account list</td><td>GrantedAuthorityTest, PermissionResolverTest</td></tr><tr><td class="mono">TS-12</td><td>Reporting</td><td>A branch filter never leaks another branch's rows</td><td>ReportBranchScopeTest, SaleBranchScopeTest</td></tr><tr><td class="mono">TS-13</td><td>Settlement</td><td>Billed 1,283.33 less 500 paid shows 783.33 outstanding</td><td>SettlementToleranceTest</td></tr><tr><td class="mono">TS-14</td><td>Settlement</td><td>A non-ADJUSTMENT return does not reduce payable</td><td>FAILS by design — GAP-04</td></tr><tr><td class="mono">TS-15</td><td>Tenancy</td><td>A subscription past grace refuses every gated endpoint</td><td>Covered</td></tr><tr><td class="mono">TS-16</td><td>Concurrency</td><td>One invoice cannot be approved twice concurrently</td><td>NOT COVERED — GAP / NFR-14</td></tr></tbody></table></div></section><section id="gaps"><h2><span class="num">16</span>Gap Analysis</h2><p class="lead">12 gaps, each traced to code, schema or a live probe. Severity reflects business impact, not effort to fix.</p><div class="tw"><table><thead><tr><th>ID</th><th>Severity</th><th>Area</th><th>Risk</th><th>Status</th></tr></thead><tbody><tr><td class="mono">GAP-01</td><td>🟢 Low</td><td>Access control</td><td>Accounts and Sales Manager received 403 on four write endpoints.</td><td><span class="chip c-ok">RESOLVED</span></td></tr><tr><td class="mono">GAP-02</td><td>🟠 High</td><td>API surface</td><td>An integrator will find them in Swagger and trust them.</td><td><span class="chip c-no">NOT IMPLEMENTED</span></td></tr><tr><td class="mono">GAP-03</td><td>🟠 High</td><td>Security</td><td>A database copy is a copy of those passwords.</td><td><span class="chip c-part">PARTIALLY IMPLEMENTED</span></td></tr><tr><td class="mono">GAP-04</td><td>🟠 High</td><td>Payables</td><td>Supplier outstanding is overstated wherever goods were returned.</td><td><span class="chip c-confirm">REQUIRES BUSINESS CONFIRMATION</span></td></tr><tr><td class="mono">GAP-05</td><td>🟡 Medium</td><td>Tenancy</td><td>A customer's own administrator could pass the gate for their expired pharmacy.</td><td><span class="chip c-no">NOT IMPLEMENTED</span></td></tr><tr><td class="mono">GAP-06</td><td>🟡 Medium</td><td>Product history</td><td>A price changed by import loses history the UI would have kept.</td><td><span class="chip c-no">NOT IMPLEMENTED</span></td></tr><tr><td class="mono">GAP-07</td><td>🟡 Medium</td><td>Money rules</td><td>A purchase and a sale of identical shape can differ by a paisa.</td><td><span class="chip c-no">NOT IMPLEMENTED</span></td></tr><tr><td class="mono">GAP-08</td><td>🟡 Medium</td><td>Sales discounts</td><td>A documented capability that has never worked.</td><td><span class="chip c-confirm">REQUIRES BUSINESS CONFIRMATION</span></td></tr><tr><td class="mono">GAP-09</td><td>🟡 Medium</td><td>Configuration</td><td>On an installation whose platform organisation is not 1, every platform-operator test silently fails.</td><td><span class="chip c-no">NOT IMPLEMENTED</span></td></tr><tr><td class="mono">GAP-10</td><td>🟢 Low</td><td>Data integrity</td><td>Harmless to totals, fatal to an audit.</td><td><span class="chip c-no">NOT IMPLEMENTED</span></td></tr><tr><td class="mono">GAP-11</td><td>🟢 Low</td><td>Test data</td><td>They are counted by every purchase report and by supplier payable.</td><td><span class="chip c-no">NOT IMPLEMENTED</span></td></tr><tr><td class="mono">GAP-12</td><td>🟢 Low</td><td>Audit</td><td>A disputed approval cannot be traced to a person.</td><td><span class="chip c-rec">RECOMMENDED</span></td></tr></tbody></table></div>
+   
+     <article class="gap" id="GAP-01">
+       <h3><span class="cid">GAP-01</span>Access control <span class="sev">🟢 Low</span></h3>
+       <dl class="kv">
+         <dt>Current</dt><dd>Collections and Sales Discount write endpoints were gated on ADMIN/MANAGER, authorities no ordinary user is granted.</dd>
+         <dt>Expected</dt><dd>The permission matrix decides.</dd>
+         <dt>Risk</dt><dd>Accounts and Sales Manager received 403 on four write endpoints.</dd>
+         <dt>Recommendation</dt><dd>Fixed 2026-09-06: checks moved into the services against MOD10 and MOD08.</dd>
+         <dt>Status</dt><dd><span class="chip c-ok">RESOLVED</span></dd>
+       </dl>
+     </article>
+     <article class="gap" id="GAP-02">
+       <h3><span class="cid">GAP-02</span>API surface <span class="sev">🟠 High</span></h3>
+       <dl class="kv">
+         <dt>Current</dt><dd>31 endpoints under /api/v1/reports return HTTP 500. Written against columns this schema does not have.</dd>
+         <dt>Expected</dt><dd>No dead authenticated surface.</dd>
+         <dt>Risk</dt><dd>An integrator will find them in Swagger and trust them.</dd>
+         <dt>Recommendation</dt><dd>Delete the controller and its service, or gate it behind a disabled profile. The 18 grid reports under /api/reports are the live surface.</dd>
+         <dt>Status</dt><dd><span class="chip c-no">NOT IMPLEMENTED</span></dd>
+       </dl>
+     </article>
+     <article class="gap" id="GAP-03">
+       <h3><span class="cid">GAP-03</span>Security <span class="sev">🟠 High</span></h3>
+       <dl class="kv">
+         <dt>Current</dt><dd>8 of 25 accounts still store their password in clear text, having not signed in since the migration.</dd>
+         <dt>Expected</dt><dd>Every password a one-way hash.</dd>
+         <dt>Risk</dt><dd>A database copy is a copy of those passwords.</dd>
+         <dt>Recommendation</dt><dd>Reset them from the Passwords screen, which hashes immediately. They are already reported there as WEAK.</dd>
+         <dt>Status</dt><dd><span class="chip c-part">PARTIALLY IMPLEMENTED</span></dd>
+       </dl>
+     </article>
+     <article class="gap" id="GAP-04">
+       <h3><span class="cid">GAP-04</span>Payables <span class="sev">🟠 High</span></h3>
+       <dl class="kv">
+         <dt>Current</dt><dd>A purchase return reduces payable only when its payment type is ADJUSTMENT; returns inherit the purchase's type, so nearly none do.</dd>
+         <dt>Expected</dt><dd>Return credit reflected in what suppliers are owed.</dd>
+         <dt>Risk</dt><dd>Supplier outstanding is overstated wherever goods were returned.</dd>
+         <dt>Recommendation</dt><dd>A business decision is required: either every approved return against an invoice is credit, or the return screen must ask.</dd>
+         <dt>Status</dt><dd><span class="chip c-confirm">REQUIRES BUSINESS CONFIRMATION</span></dd>
+       </dl>
+     </article>
+     <article class="gap" id="GAP-05">
+       <h3><span class="cid">GAP-05</span>Tenancy <span class="sev">🟡 Medium</span></h3>
+       <dl class="kv">
+         <dt>Current</dt><dd>The subscription gate exempts on isSuperAdmin() alone, without the organisation half of the platform-operator rule.</dd>
+         <dt>Expected</dt><dd>Only the platform operator bypasses the gate.</dd>
+         <dt>Risk</dt><dd>A customer's own administrator could pass the gate for their expired pharmacy.</dd>
+         <dt>Recommendation</dt><dd>Delegate to isPlatformOperator(), as ActingBranchFilter already does.</dd>
+         <dt>Status</dt><dd><span class="chip c-no">NOT IMPLEMENTED</span></dd>
+       </dl>
+     </article>
+     <article class="gap" id="GAP-06">
+       <h3><span class="cid">GAP-06</span>Product history <span class="sev">🟡 Medium</span></h3>
+       <dl class="kv">
+         <dt>Current</dt><dd>POST /api/products/bulk updates in place; the single-product path versions.</dd>
+         <dt>Expected</dt><dd>One history rule whatever the route.</dd>
+         <dt>Risk</dt><dd>A price changed by import loses history the UI would have kept.</dd>
+         <dt>Recommendation</dt><dd>Route bulk edits through the version-creating method.</dd>
+         <dt>Status</dt><dd><span class="chip c-no">NOT IMPLEMENTED</span></dd>
+       </dl>
+     </article>
+     <article class="gap" id="GAP-07">
+       <h3><span class="cid">GAP-07</span>Money rules <span class="sev">🟡 Medium</span></h3>
+       <dl class="kv">
+         <dt>Current</dt><dd>Two calculators cover the same arithmetic with different rounding: PurchaseCalculator divides at scale 10 then rounds; TransactionCalculator divides directly at scale 2.</dd>
+         <dt>Expected</dt><dd>One rounding policy.</dd>
+         <dt>Risk</dt><dd>A purchase and a sale of identical shape can differ by a paisa.</dd>
+         <dt>Recommendation</dt><dd>Fold the sales paths onto one calculator and delete the duplicate.</dd>
+         <dt>Status</dt><dd><span class="chip c-no">NOT IMPLEMENTED</span></dd>
+       </dl>
+     </article>
+     <article class="gap" id="GAP-08">
+       <h3><span class="cid">GAP-08</span>Sales discounts <span class="sev">🟡 Medium</span></h3>
+       <dl class="kv">
+         <dt>Current</dt><dd>POS_SALES_DISCOUNT.PID_BRANCH is NOT NULL but the service never sets it, so creating a discount rule has never succeeded for anyone. The table holds 0 rows.</dd>
+         <dt>Expected</dt><dd>A usable discount feature.</dd>
+         <dt>Risk</dt><dd>A documented capability that has never worked.</dd>
+         <dt>Recommendation</dt><dd>Decide whether a rule is branch-scoped (set it from the session) or organisation-wide (make the column nullable), then one line.</dd>
+         <dt>Status</dt><dd><span class="chip c-confirm">REQUIRES BUSINESS CONFIRMATION</span></dd>
+       </dl>
+     </article>
+     <article class="gap" id="GAP-09">
+       <h3><span class="cid">GAP-09</span>Configuration <span class="sev">🟡 Medium</span></h3>
+       <dl class="kv">
+         <dt>Current</dt><dd>app.platform.org-id is unset and defaults to 1.</dd>
+         <dt>Expected</dt><dd>Explicit per environment.</dd>
+         <dt>Risk</dt><dd>On an installation whose platform organisation is not 1, every platform-operator test silently fails.</dd>
+         <dt>Recommendation</dt><dd>Set it explicitly and fail startup if it names an organisation that does not exist.</dd>
+         <dt>Status</dt><dd><span class="chip c-no">NOT IMPLEMENTED</span></dd>
+       </dl>
+     </article>
+     <article class="gap" id="GAP-10">
+       <h3><span class="cid">GAP-10</span>Data integrity <span class="sev">🟢 Low</span></h3>
+       <dl class="kv">
+         <dt>Current</dt><dd>Two stock movements reference transaction rows that no longer exist.</dd>
+         <dt>Expected</dt><dd>No orphan ledger rows.</dd>
+         <dt>Risk</dt><dd>Harmless to totals, fatal to an audit.</dd>
+         <dt>Recommendation</dt><dd>Add a foreign key with ON DELETE RESTRICT, then clean the two rows.</dd>
+         <dt>Status</dt><dd><span class="chip c-no">NOT IMPLEMENTED</span></dd>
+       </dl>
+     </article>
+     <article class="gap" id="GAP-11">
+       <h3><span class="cid">GAP-11</span>Test data <span class="sev">🟢 Low</span></h3>
+       <dl class="kv">
+         <dt>Current</dt><dd>19 purchase invoices with ZZAP/ZZDP challans from 26–27 August remain in the trading data.</dd>
+         <dt>Expected</dt><dd>Clean trading data.</dd>
+         <dt>Risk</dt><dd>They are counted by every purchase report and by supplier payable.</dd>
+         <dt>Recommendation</dt><dd>Remove them and their stock movements from non-production; confirm none reached production.</dd>
+         <dt>Status</dt><dd><span class="chip c-no">NOT IMPLEMENTED</span></dd>
+       </dl>
+     </article>
+     <article class="gap" id="GAP-12">
+       <h3><span class="cid">GAP-12</span>Audit <span class="sev">🟢 Low</span></h3>
+       <dl class="kv">
+         <dt>Current</dt><dd>Purchase approval and cancellation change status but record no actor.</dd>
+         <dt>Expected</dt><dd>Attribution as password reset already has.</dd>
+         <dt>Risk</dt><dd>A disputed approval cannot be traced to a person.</dd>
+         <dt>Recommendation</dt><dd>Record actor and timestamp on the status change.</dd>
+         <dt>Status</dt><dd><span class="chip c-rec">RECOMMENDED</span></dd>
+       </dl>
+     </article></section><section id="next"><h2><span class="num">17</span>Recommendations</h2><div class="tw"><table><thead><tr><th>Priority</th><th>Action</th><th>Addresses</th><th>Effort</th></tr></thead><tbody><tr><td>1</td><td>Decide which purchase returns reduce supplier payable</td><td class="mono">GAP-04</td><td>Business decision, then medium</td></tr><tr><td>2</td><td>Reset the 8 accounts still holding plaintext passwords</td><td class="mono">GAP-03</td><td>Low</td></tr><tr><td>3</td><td>Remove the 31 dead report endpoints</td><td class="mono">GAP-02</td><td>Low</td></tr><tr><td>4</td><td>Decide discount scope (branch or organisation), then fix</td><td class="mono">GAP-08</td><td>Decision, then one line</td></tr><tr><td>5</td><td>Set the platform organisation explicitly per environment</td><td class="mono">GAP-09</td><td>Low</td></tr><tr><td>6</td><td>Make the tenancy gate use isPlatformOperator()</td><td class="mono">GAP-05</td><td>Low</td></tr><tr><td>7</td><td>Consolidate onto one calculator with a stated rounding policy</td><td class="mono">GAP-07</td><td>Medium</td></tr><tr><td>8</td><td>Route bulk product import through versioning</td><td class="mono">GAP-06</td><td>Medium</td></tr><tr><td>9</td><td>Add a foreign key from movement to transaction; clean the orphans</td><td class="mono">GAP-10</td><td>Medium</td></tr><tr><td>10</td><td>Define backup, recovery and availability targets</td><td class="mono">NFR-10/11</td><td>Policy</td></tr></tbody></table></div>
+  <h3>Two decisions only the business can make</h3>
+  <ol class="steps">
+    <li><b>Which purchase returns reduce what a supplier is owed.</b> Today almost none do, so supplier balances are
+    overstated wherever goods went back.</li>
+    <li><b>Whether a sales discount rule belongs to a branch or to the whole pharmacy.</b> The feature has never
+    worked because the two answers were never reconciled.</li>
+  </ol></section><section id="quality"><h2><span class="num">18</span>Analysis Quality</h2><div class="tw"><table><thead><tr><th>Area</th><th>Coverage</th><th>Basis</th></tr></thead><tbody><tr><td>Frontend</td><td>90%</td><td>All 36 pages enumerated; 15 documented in screen-level detail</td></tr><tr><td>Backend</td><td>95%</td><td>All 34 controllers and 49 services enumerated; business logic traced</td></tr><tr><td>Database</td><td>95%</td><td>All 64 tables and 8 views enumerated; core entities documented</td></tr><tr><td>API</td><td>85%</td><td>All controllers with paths, roles and counts; not all ~380 signatures</td></tr><tr><td>Business rules</td><td>90%</td><td>30 rules extracted and traced to enforcement points</td></tr><tr><td>Workflows</td><td>85%</td><td>6 major workflows reconstructed end to end</td></tr><tr><td>Calculations</td><td>100%</td><td>All 15 quoted from the computing class and worked through</td></tr></tbody></table></div>
+  <p class="conf">Overall confidence — <b>HIGH</b>. Formulas were transcribed from source and cross-checked against
+  live rows. All 18 grid reports were run against the live API. The schema was queried directly.</p>
+  <h3>Remaining unknowns</h3>
+  <ul class="bul">
+    <li><b>GAP-04</b> — which purchase returns count as supplier credit is a business decision, not a code question.</li>
+    <li><b>GAP-08</b> — whether a sales discount rule is branch-scoped or organisation-wide.</li>
+    <li>Screen-level field inventories exist for 15 of 36 pages; the rest are catalogued by role and function.</li>
+    <li>Production configuration was not inspected — only development values.</li>
+  </ul></section></main>
+
+<footer>
+  Friends Pharma ERP · Business Requirements Specification v2.0 · 9 September 2026.
+  Phase-by-phase working papers accompany this document under <code>docs/srs/</code>.
+  Status vocabulary: Implemented · Partially implemented · Not implemented · Recommended · Requires business confirmation.
+</footer>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<script>
+  // Diagrams take their colours from the document tokens so they read in both themes.
+  (function () {
+    var cs = getComputedStyle(document.documentElement);
+    var t = function (n) { return cs.getPropertyValue(n).trim(); };
+    if (window.mermaid) {
+      mermaid.initialize({
+        startOnLoad: true,
+        securityLevel: "strict",
+        theme: "base",
+        themeVariables: {
+          background: t("--card"), primaryColor: t("--paper-deep"),
+          primaryTextColor: t("--ink"), primaryBorderColor: t("--line"),
+          lineColor: t("--ink-soft"), secondaryColor: t("--teal-soft"),
+          tertiaryColor: t("--amber-soft"), fontFamily: "IBM Plex Mono, monospace",
+          fontSize: "13px"
+        }
+      });
+    }
+    // Rail highlight follows the section actually in view.
+    var links = [].slice.call(document.querySelectorAll("nav.rail a"));
+    var byId = {}; links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+    var obs = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        links.forEach(function (a) { a.classList.remove("on"); });
+        var a = byId[e.target.id]; if (a) a.classList.add("on");
+      });
+    }, { rootMargin: "-15% 0px -75% 0px" });
+    document.querySelectorAll("main section").forEach(function (s) { obs.observe(s); });
+  })();
+</script>
+</body>
+</html>
